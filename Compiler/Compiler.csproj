@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="YaccLexTools" Version="1.2.0"/>
+    </ItemGroup>
+    <ItemGroup Label="Imperative">
+        <YaccFile Include="Imperative\Imperative.Language.grammar.y">
+            <OutputFile>Imperative\Imperative.Parser.Generated.cs</OutputFile>
+            <Arguments>/gplex /nolines</Arguments>
+        </YaccFile>
+        <None Include="Imperative\Imperative.Parser.Generated.cs">
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+            <DependentUpon>Imperative.Language.grammar.y</DependentUpon>
+        </None>
+        <LexFile Include="Imperative\Imperative.Language.analyzer.lex">
+            <OutputFile>Imperative\Imperative.Scanner.Generated.cs</OutputFile>
+        </LexFile>
+        <None Include="Imperative\Imperative.Scanner.Generated.cs">
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+            <DependentUpon>Imperative.Language.analyzer.lex</DependentUpon>
+        </None>
+    </ItemGroup>
+</Project>

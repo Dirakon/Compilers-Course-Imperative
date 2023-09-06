@@ -1,0 +1,3 @@
+routine Sum(x: real, y: real): real is
+    return x + y;
+end;
