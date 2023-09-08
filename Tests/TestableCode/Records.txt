@@ -1,0 +1,64 @@
+routine EntryPoint(): boolean is
+    return AssignmentAndReadingWork()
+        and RecordOfComplexTypeWorks()
+        and RecordOfInlineComplexTypeWorks()
+        and RecordAsArgumentWorks();
+end;
+
+routine AssignmentAndReadingWork(): boolean is
+    var someRecord : record { 
+                             var field : integer;
+                         } end;
+    
+    someRecord.field := 2;
+    
+    return someRecord.field = 2;
+end;
+
+type SomeRecordType is 
+    record { 
+        var someRecordField : integer;
+    } end;
+type SomeArrayType is array [1] int;
+
+routine RecordOfComplexTypeWorks(): boolean is
+    var someRecord : record { 
+                                 var rec : SomeRecordType;
+                                 var arr : SomeArrayType;
+                         } end;
+    
+    someRecord.rec.someRecordField := 2;
+    someRecord.arr[1] := 6;
+    
+    return someRecord.rec.someRecordField = 2 and someRecord.arr[1] = 6;
+end;
+
+routine RecordOfInlineComplexTypeWorks(): boolean is
+    var someRecord : record { 
+                                 var rec : record { 
+                                                   var someRecordField : integer;
+                                               } end;
+                                 var arr : array [1] int;
+                         } end;
+    
+    someRecord.rec.someRecordField := 2;
+    someRecord.arr[1] := 6;
+    
+    return someRecord.rec.someRecordField = 2 and someRecord.arr[1] = 6;
+end;
+
+routine RecordAsArgumentWorks(): boolean is
+    var someRecord : record { 
+            var field : integer;
+        } end;
+    
+    AssignRecord(someRecord);
+    
+    return someRecord.field = 69;
+end;
+
+routine AssignRecord(rec: record { 
+                                      var field : integer;
+                                  } end) is
+    rec.field := 69;
+end;

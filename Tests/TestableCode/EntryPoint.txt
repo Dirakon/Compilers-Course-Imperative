@@ -1,0 +1,11 @@
+routine RoutineDefinedBefore(): boolean is
+    return false;
+end;
+
+routine EntryPoint(): boolean is
+    return true;
+end;
+
+routine RoutineDefinedAfter(): boolean is
+    return false;
+end;

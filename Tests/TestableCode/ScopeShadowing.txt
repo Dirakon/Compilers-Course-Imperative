@@ -1,0 +1,14 @@
+routine EntryPoint(): boolean is
+    var someVariable : boolean;
+    
+    if true then
+        someVariable := true;
+    end;
+    
+    if true then
+        var someVariable : boolean;
+        someVariable := false;
+    end;
+    
+    return someVariable = true;
+end;

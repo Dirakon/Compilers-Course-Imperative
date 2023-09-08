@@ -14,6 +14,11 @@ public class CompilingTests
     // TODO: specify arguments and expected output
     [Theory]
     [InlineData("Sum", new object[] {1, 2}, 3)]
+    [InlineData("Arrays", new object[] {}, true)]
+    [InlineData("Records", new object[] {}, true)]
+    [InlineData("EntryPoint", new object[] {}, true)]
+    [InlineData("ScopeShadowing", new object[] {}, true)]
+    [InlineData("Routines", new object[] {}, true)]
     public void RunProgram_ValidCode_ShouldGiveExpectedOutput(
         string fileName,
         object[] arguments,
