@@ -1,0 +1,6 @@
+routine InCircle(x: real, y: real, cx: real, cy: real, r: real): boolean is
+    var dx: real is x - cx;
+    var dy: real is y - cy;
+    
+    return dx * dx + dy * dy <= r * r;
+end;
