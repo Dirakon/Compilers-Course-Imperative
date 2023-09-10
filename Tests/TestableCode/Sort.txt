@@ -8,7 +8,7 @@ routine EntryPoint(): boolean is
         arr2[i] := i;
     end;
     
-    return checkEqual(arr1, arr2);
+    return CheckEqual(arr1, arr2);
 end;
 
 routine BubbleSort(beforeArray: array [] integer, afterArray: array [] integer ) is

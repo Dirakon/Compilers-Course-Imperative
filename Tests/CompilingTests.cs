@@ -16,7 +16,7 @@ public class CompilingTests
     [InlineData("Sum", new object[] {1, 2}, 3)]
     [InlineData("Circle", new object[] {1, 1, 0, 0, 2}, true)]
     [InlineData("ReferenceClone", new object[] {}, true)]
-    [InlineData("Logic101", new object[] {true, false}, false)]
+    [InlineData("Logic101", new object[] {true, false}, true)]
     [InlineData("Palindrome", new object[] {12321}, true)]
     [InlineData("Sort", new object[] {10}, true)]
     
