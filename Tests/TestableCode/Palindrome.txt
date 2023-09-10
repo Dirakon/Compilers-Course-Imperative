@@ -2,10 +2,10 @@ routine IsPalindrome(original: integer): boolean is
     var reverse: integer is 0;
     var temp: integer;
     temp := original;
-    while(temp > 0){
+    while temp > 0 loop 
         reverse := reverse * 10 + temp % 10;
         temp := temp/10;
-    }
+    end; 
     if original=reverse then 
         return true;
     else 

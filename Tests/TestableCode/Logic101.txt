@@ -1,3 +1,3 @@
-routine Logic1010(a: boolean, b: boolean): boolean is
+routine Logic101(a: boolean, b: boolean): boolean is
     return false or (true and ((a and b) or ((a xor b) and b)));
 end;
