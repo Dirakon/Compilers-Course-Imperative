@@ -1,6 +1,6 @@
 var size is 10;
 
-routine EntryPoint() boolean is 
+routine EntryPoint(): boolean is 
     var arr1: arr [size] integer;
     var arr2: arr [size] integer;
     for i in 1..size loop
@@ -32,7 +32,7 @@ routine BubbleSort(beforeArray: array [] integer, afterArray: array [] integer )
         end;
 end;
 
-routine checkEqual(beforeArray: array [] integer, afterArray: array [] integer) boolean is
+routine checkEqual(beforeArray: array [] integer, afterArray: array [] integer): boolean is
     for i in size loop
         if beforeArray[i] /= afterArray[i] then
             return false;
