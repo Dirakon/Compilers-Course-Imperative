@@ -1,16 +1,14 @@
-var size is 10;
-
 routine EntryPoint(): boolean is 
-    var arr1: arr [size] integer;
-    var arr2: arr [size] integer;
-    for i in 1..size loop
+    var arr1: arr [10] integer;
+    var arr2: arr [10] integer;
+    for i in 1..10 loop
         arr1[i] := i;
     end;
-    for i in reverse 1..size loop
+    for i in reverse 1..10 loop
         arr2[i] := i;
     end;
     
-    return checkEqual(arr1, arr2, size);
+    return checkEqual(arr1, arr2);
 end;
 
 routine BubbleSort(beforeArray: array [] integer, afterArray: array [] integer ) is
@@ -18,9 +16,9 @@ routine BubbleSort(beforeArray: array [] integer, afterArray: array [] integer )
     var swapped: boolean;
     var temp: integer;
     
-    for i in 1 .. size loop
+    for i in 1 .. 10 loop
         swapped := false;
-        for j in 1 .. (size - i) loop
+        for j in 1 .. (10 - i) loop
             if beforeArray[j] > beforeArray[j+1] then
                 temp := beforeArray[j];
                 beforeArray[j] := beforeArray[j + 1];
@@ -32,8 +30,8 @@ routine BubbleSort(beforeArray: array [] integer, afterArray: array [] integer )
         end;
 end;
 
-routine checkEqual(beforeArray: array [] integer, afterArray: array [] integer): boolean is
-    for i in size loop
+routine CheckEqual(beforeArray: array [] integer, afterArray: array [] integer): boolean is
+    for i in 10 loop
         if beforeArray[i] /= afterArray[i] then
             return false;
         end;   
