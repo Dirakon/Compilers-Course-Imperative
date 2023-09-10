@@ -1,0 +1,22 @@
+routine RoutineDefinedBefore(): integer is
+    return 1;
+end;
+
+routine EntryPoint(): boolean is
+    var routinesComplete is 0;
+    routinesComplete := routinesComplete + RoutineDefinedBefore();
+    routinesComplete := routinesComplete + RoutineDefinedAfter();
+    
+    return routinesComplete = 7;
+end;
+
+routine RoutineDefinedAfter(): integer is
+    return 1 + RecursiveRoutine(5);
+end;
+
+routine RecursiveRoutine(recursionsLeft: integer): integer is
+    if recursionsLeft <= 0 then
+        return 0;
+    end;
+    return 1 + RecursiveRoutine(recursionsLeft - 1);
+end;

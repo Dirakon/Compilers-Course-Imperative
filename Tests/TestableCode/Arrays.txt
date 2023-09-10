@@ -1,0 +1,103 @@
+routine EntryPoint(): boolean is
+    return AssignmentAndReadingWork()
+        and ArraySizeIsSuccessfullyDeterminedAtCompileTime()
+        and ArrayOfComplexTypeWorks()
+        and ArrayOfInlineComplexTypeWorks()
+        and ArrayAsArgumentWorks();
+end;
+
+routine AssignmentAndReadingWork(): boolean is
+    var testSuccess is true;
+    var someArray : array [7] integer;
+    
+    for i in 1..7 loop
+        someArray[i] := i;
+    end;
+    
+    for i in 1..7 loop
+        if someArray[i] /= i then
+            testSuccess := false;
+        end;
+    end;
+    
+    return testSuccess;
+end;
+
+routine ArraySizeIsSuccessfullyDeterminedAtCompileTime(): boolean is
+    var testSuccess is true;
+    var someArray : array [2 + (2 * 2) + 1] integer;
+    
+    for i in 1..7 loop
+        someArray[i] := i;
+    end;
+    
+    for i in 1..7 loop
+        if someArray[i] /= i then
+            testSuccess := false;
+        end;
+    end;
+    
+    return testSuccess;
+end;
+
+type SomeRecordType is 
+    record { 
+        var someRecordField : integer;
+    } end;
+
+routine ArrayOfComplexTypeWorks(): boolean is
+    var testSuccess is true;
+    var someArray : array [7] SomeRecordType;
+    
+    for i in 1..7 loop
+        someArray[i].someRecordField := i;
+    end;
+    
+    for i in 1..7 loop
+        if someArray[i].someRecordField /= i then
+            testSuccess := false;
+        end;
+    end;
+    
+    return testSuccess;
+end;
+
+routine ArrayOfInlineComplexTypeWorks(): boolean is
+    var testSuccess is true;
+    var someArray : array [7] record { 
+                                      var field : integer;
+                                  } end;
+    
+    for i in 1..7 loop
+        someArray[i].field := i;
+    end;
+    
+    for i in 1..7 loop
+        if someArray[i].field /= i then
+            testSuccess := false;
+        end;
+    end;
+    
+    return testSuccess;
+end;
+
+routine ArrayAsArgumentWorks(): boolean is
+    var testSuccess is true;
+    var someArray : array [7] integer;
+    
+    AssignIntArray(someArray);
+    
+    for i in 1..7 loop
+        if someArray[i] /= i then
+            testSuccess := false;
+        end;
+    end;
+    
+    return testSuccess;
+end;
+
+routine AssignIntArray(intArray: array [] integer) is
+    for i in 1..7 loop
+        intArray[i] := i;
+    end;
+end;
