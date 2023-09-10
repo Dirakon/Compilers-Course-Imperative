@@ -1,0 +1,15 @@
+type MyType is 
+    record { 
+        var myField : integer;
+    } end;
+
+routine EntryPoint(): boolean is
+    var original: MyType;
+    var ref: MyType;
+    original.myField := 10;
+    ref := original;
+    ref.myField := 100;
+    
+    return original.myField = 100;
+end;
+
