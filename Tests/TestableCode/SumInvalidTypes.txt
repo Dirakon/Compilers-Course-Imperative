@@ -1,0 +1,4 @@
+routine SumInvTypes(x: real, y: integer): real is
+    var ans: integer is x + y;
+    return ans;
+end;

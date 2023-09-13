@@ -24,6 +24,10 @@ public class CompilingTests
     [InlineData("Logic101", new object[] {true, false}, true)]
     [InlineData("Palindrome", new object[] {12321}, true)]
     [InlineData("Sort", new object[] {10}, true)]
+    [InlineData("ImpConv", new object[] {1}, 2)]
+    [InlineData("ForLoopRev", new object[] {}, 9)]
+    [InlineData("WhileLoop", new object[] {17}, 7)]
+    [InlineData("Divide", new object[] {4,2}, 2)]
     public void RunProgram_ValidCode_ShouldGiveExpectedOutput(
         string fileName,
         object[] arguments,
