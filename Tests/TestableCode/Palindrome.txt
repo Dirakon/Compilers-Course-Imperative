@@ -1,12 +1,12 @@
 routine IsPalindrome(original: integer): boolean is
-    var reverse: integer is 0;
+    var reversable: integer is 0;
     var temp: integer;
     temp := original;
     while temp > 0 loop 
-        reverse := reverse * 10 + temp % 10;
+        reversable := reversable * 10 + temp % 10;
         temp := temp/10;
     end; 
-    if original=reverse then 
+    if original=reversable then 
         return true;
     else 
         return false;
