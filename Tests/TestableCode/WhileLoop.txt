@@ -1,0 +1,11 @@
+routine WhileLoop(n: integer): integer is
+    var temp: integer;
+    if n < 0 then
+        return -1;
+    end;
+    while n > 0 loop 
+        temp := n % 10;
+        n := n/10;
+    end;
+    return temp;
+end;

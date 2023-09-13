@@ -1,0 +1,8 @@
+routine ForLoopRev(): integer is
+    for i in reverse 1..10 loop
+            if i % 3 = 0 then
+                return i;
+            end;
+        end;
+    return -1;
+end;
