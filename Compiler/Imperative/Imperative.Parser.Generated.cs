@@ -3,8 +3,8 @@
 // (see accompanying GPPGcopyright.rtf)
 
 // GPPG version 1.5.2
-// DateTime: 9/6/2023 6:16:57 PM
-// Input file <Imperative/Imperative.Language.grammar.y - 9/6/2023 6:16:53 PM>
+// DateTime: 9/15/2023 6:40:24 PM
+// Input file <Imperative/Imperative.Language.grammar.y - 9/15/2023 6:40:22 PM>
 
 // options: no-lines gplex
 
@@ -17,12 +17,20 @@ using QUT.Gppg;
 
 namespace Compiler.Imperative
 {
-internal enum Token {error=2,EOF=3,NUMBER=4};
+internal enum Token {error=2,EOF=3,IDENTIFIER=4,BOOL=5,INT=6,
+    REAL=7,TYPE=8,IS=9,END=10,RETURN=11,VAR=12,
+    ROUTINE=13,FOR=14,WHILE=15,LOOP=16,IN=17,REVERSE=18,
+    IF=19,THEN=20,ELSE=21,ARRAY=22,RECORD=23,ROUND_OPEN=24,
+    ROUND_CLOSE=25,CURLY_OPEN=26,CURLY_CLOSE=27,SQUARE_OPEN=28,SQUARE_CLOSE=29,SEMICOLON=30,
+    COLON=31,COMMA=32,ASSIGN=33,DOT=34,MINUS=35,PLUS=36,
+    MULTIPLY=37,DIVIDE=38,PERCENT=39,AND=40,OR=41,XOR=42,
+    RANGE=43,LEQ=44,GEQ=45,LESS=46,GREATER=47,EQUAL=48,
+    NOT_EQUAL=49,INT_LITERAL=50,REAL_LITERAL=51,FALSE=52,TRUE=53};
 
 internal partial struct ValueType
-{ 
-			public int n; 
-			public string s; 
+{  
+			public string underlyingString; 
+			public LexLocation position; 
 	   }
 // Abstract base class for GPLEX scanners
 [GeneratedCodeAttribute( "Gardens Point Parser Generator", "1.5.2")]
@@ -49,24 +57,26 @@ internal partial class ImperativeParser: ShiftReduceParser<ValueType, LexLocatio
 #pragma warning disable 649
   private static Dictionary<int, string> aliases;
 #pragma warning restore 649
-  private static Rule[] rules = new Rule[5];
-  private static State[] states = new State[5];
+  private static Rule[] rules = new Rule[4];
+  private static State[] states = new State[8];
   private static string[] nonTerms = new string[] {
-      "main", "$accept", "number", };
+      "main", "$accept", "routine", };
 
   static ImperativeParser() {
-    states[0] = new State(new int[]{4,4,3,-3},new int[]{-1,1,-3,3});
+    states[0] = new State(new int[]{13,3},new int[]{-1,1});
     states[1] = new State(new int[]{3,2});
     states[2] = new State(-1);
-    states[3] = new State(-2);
-    states[4] = new State(-4);
+    states[3] = new State(new int[]{4,4});
+    states[4] = new State(new int[]{24,5});
+    states[5] = new State(new int[]{25,6});
+    states[6] = new State(new int[]{31,7});
+    states[7] = new State(-2);
 
     for (int sNo = 0; sNo < states.Length; sNo++) states[sNo].number = sNo;
 
     rules[1] = new Rule(-2, new int[]{-1,3});
-    rules[2] = new Rule(-1, new int[]{-3});
-    rules[3] = new Rule(-3, new int[]{});
-    rules[4] = new Rule(-3, new int[]{4});
+    rules[2] = new Rule(-1, new int[]{13,4,24,25,31});
+    rules[3] = new Rule(-3, new int[]{13});
   }
 
   protected override void Initialize() {
@@ -81,8 +91,8 @@ internal partial class ImperativeParser: ShiftReduceParser<ValueType, LexLocatio
 #pragma warning disable 162, 1522
     switch (action)
     {
-      case 4: // number -> NUMBER
-{ Console.WriteLine("Rule -> number: {0}", ValueStack[ValueStack.Depth-1].n); SomeValue = ValueStack[ValueStack.Depth-1].n;}
+      case 3: // routine -> ROUTINE
+{}
         break;
     }
 #pragma warning restore 162, 1522
