@@ -1,13 +1,11 @@
 %namespace Compiler.Imperative
 %partial
+%YYLTYPE CustomLexLocation
 %parsertype ImperativeParser
 %visibility internal
 %tokentype Token
 
-%union {  
-			public string underlyingString; 
-			public LexLocation position; 
-	   }
+%YYSTYPE ILexem
 
 %start main
 
@@ -70,10 +68,10 @@
 
 %%
 
-main   :  ROUTINE IDENTIFIER ROUND_OPEN ROUND_CLOSE COLON  //routine IDENTIFIER arguments COLON REAL IS RETURN identifier PLUS identifier SEMICOLON END            {}
-       ;
+main   :  ROUTINE IDENTIFIER ROUND_OPEN ROUND_CLOSE COLON  //{$$ = new Routine(@1.underlyingString);}//routine IDENTIFIER arguments COLON REAL IS RETURN identifier PLUS identifier SEMICOLON END            {}
+      ;
 
-routine : ROUTINE                           {}
+routine : ROUTINE                          // {$$ = new Routine(@1);}
        ;
 
 %%

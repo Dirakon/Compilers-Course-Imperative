@@ -6,10 +6,9 @@ internal partial class ImperativeScanner
 {
     private void GetTokenData()
     {
-        yylval.position = new (tokLin, tokCol, tokELin, tokECol);
-        yylval.underlyingString = yytext;
-        Console.WriteLine($"{yylval.position.StartLine}:{yylval.position.StartColumn} - {yylval.position.EndLine}:{yylval.position.EndColumn}");
-        Console.WriteLine(yylval.underlyingString);
+        yylloc = new (tokLin, tokCol, tokELin, tokECol, yytext);
+        Console.WriteLine($"{yylloc.StartLine}:{yylloc.StartColumn} - {yylloc.EndLine}:{yylloc.EndColumn}");
+        Console.WriteLine(yytext);
     }
 
     public override void yyerror(string format, params object[] args)
