@@ -27,6 +27,9 @@ Array           array
 Record          record
 False           false
 True            true
+And             and
+Or              or
+Xor             xor
 
 // Symbols
 RoundOpen       \(
@@ -45,9 +48,6 @@ Plus            \+
 Multiply        \*
 Divide          /
 Percent         %
-And             and
-Or              or
-Xor             xor
 Range           \.\.
 Leq             <=
 Geq             >=
