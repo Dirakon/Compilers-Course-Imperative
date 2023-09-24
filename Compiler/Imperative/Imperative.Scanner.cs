@@ -4,11 +4,25 @@ namespace Compiler.Imperative;
 
 internal partial class ImperativeScanner
 {
-    private void GetTokenData()
+    private int GetTokenData(Token tokenType)
     {
         yylloc = new (tokLin, tokCol, tokELin, tokECol, yytext);
-        Console.WriteLine($"{yylloc.StartLine}:{yylloc.StartColumn} - {yylloc.EndLine}:{yylloc.EndColumn}");
-        Console.WriteLine(yytext);
+
+        var outputLines = new[]
+        {
+            $"Token of type {tokenType} encountered.",
+            $"{yylloc.StartLine}:{yylloc.StartColumn} - {yylloc.EndLine}:{yylloc.EndColumn}",
+            $"Underlying string: {yytext}",
+            ""
+        };
+        
+        foreach (var outputLine in outputLines)
+        {
+            Console.WriteLine(outputLine);
+        }
+        File.AppendAllLines(@"output.txt", outputLines);
+
+        return (int) tokenType;
     }
 
     public override void yyerror(string format, params object[] args)

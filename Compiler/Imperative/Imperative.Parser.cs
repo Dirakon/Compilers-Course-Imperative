@@ -9,8 +9,6 @@ internal partial class ImperativeParser
         
     }
 
-    public Program ProgramNode { set; get; }
-
     public void Parse(string s)
     {
         var inputBuffer = Encoding.Default.GetBytes(s);
@@ -18,16 +16,15 @@ internal partial class ImperativeParser
         Scanner = new ImperativeScanner(stream);
 
        // TODO: separate concerns GPPG from GPLEX?
-        // while (NextToken != (int) Token.EOF)
-        // {
-        //     NextToken = Scanner.yylex();
-        //     Console.WriteLine(Scanner.yylloc);
-        //     
-        // }
+        while (NextToken != (int) Token.EOF)
+        {
+            NextToken = Scanner.yylex();
+            
+        }
 
         
-        Parse();
-        var topElement = ValueStack.TopElement();
+       // Parse();
+       // var topElement = ValueStack.TopElement();
         
     }
 }

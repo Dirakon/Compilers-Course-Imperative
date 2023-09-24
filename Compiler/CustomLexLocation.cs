@@ -35,6 +35,7 @@ internal class CustomLexLocation : IMerge<CustomLexLocation>
     /// </summary>
     public CustomLexLocation()
     {
+        UnderlyingString = "";
     }
 
     /// <summary>
@@ -44,8 +45,10 @@ internal class CustomLexLocation : IMerge<CustomLexLocation>
     /// <param name="sc">start column</param>
     /// <param name="el">end line </param>
     /// <param name="ec">end column</param>
+    /// <param name="us">underlying string</param>
     public CustomLexLocation(int sl, int sc, int el, int ec, string us)
     {
+        UnderlyingString = us;
         UnderlyingString = us;
         StartLine = sl;
         StartColumn = sc;

@@ -26,5 +26,11 @@
             <DesignTime>True</DesignTime>
             <DependentUpon>Imperative.Language.analyzer.lex</DependentUpon>
         </None>
+        <Content Include="Assets\*" >
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Properties\" />
     </ItemGroup>
 </Project>
