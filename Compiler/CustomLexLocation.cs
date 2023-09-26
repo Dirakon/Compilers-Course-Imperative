@@ -2,13 +2,13 @@ using QUT.Gppg;
 
 namespace Compiler;
 
-internal class CustomLexLocation : IMerge<CustomLexLocation>
+public class CustomLexLocation : IMerge<CustomLexLocation>
 {
     /// <summary>
     ///     The line at which the text span starts.
     /// </summary>
-    public string UnderlyingString { get;  }
-    
+    public string UnderlyingString { get; }
+
     /// <summary>
     ///     The line at which the text span starts.
     /// </summary>

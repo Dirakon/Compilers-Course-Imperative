@@ -3,7 +3,7 @@
 %visibility internal
 %tokentype Token
 
-%option stack, minimize, parser, verbose, persistbuffer, noembedbuffers
+%option minimize, verbose
 
 // Words
 Bool            boolean

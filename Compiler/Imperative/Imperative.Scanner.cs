@@ -6,7 +6,7 @@ internal partial class ImperativeScanner
 {
     private int GetTokenData(Token tokenType)
     {
-        yylloc = new (tokLin, tokCol, tokELin, tokECol, yytext);
+        yylloc = new(tokLin, tokCol, tokELin, tokECol, yytext);
 
         var outputLines = new[]
         {
@@ -15,14 +15,15 @@ internal partial class ImperativeScanner
             $"Underlying string: {yytext}",
             ""
         };
-        
+
         foreach (var outputLine in outputLines)
         {
             Console.WriteLine(outputLine);
         }
+
         File.AppendAllLines(@"output.txt", outputLines);
 
-        return (int) tokenType;
+        return (int)tokenType;
     }
 
     public override void yyerror(string format, params object[] args)
