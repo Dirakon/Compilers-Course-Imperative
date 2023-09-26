@@ -19,7 +19,7 @@ type SomeRecordType is
     record { 
         var someRecordField : integer;
     } end;
-type SomeArrayType is array [1] int;
+type SomeArrayType is array [1] integer;
 
 routine RecordOfComplexTypeWorks(): boolean is
     var someRecord : record { 
@@ -38,7 +38,7 @@ routine RecordOfInlineComplexTypeWorks(): boolean is
                                  var rec : record { 
                                                    var someRecordField : integer;
                                                } end;
-                                 var arr : array [1] int;
+                                 var arr : array [1] integer;
                          } end;
     
     someRecord.rec.someRecordField := 2;
