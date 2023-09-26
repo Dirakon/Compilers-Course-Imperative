@@ -7,7 +7,7 @@ public static class TokenVisualiser
     public static void VisualiseTokensIntoSourceCode(string from, string to)
     {
         File.Delete(to);
-        var tokens = File.ReadAllText(from).Split(new string[] { Environment.NewLine + Environment.NewLine },
+        var tokens = File.ReadAllText(from).Split(Environment.NewLine + Environment.NewLine,
             StringSplitOptions.RemoveEmptyEntries);
         var line = 1;
         foreach (var tk in tokens)
