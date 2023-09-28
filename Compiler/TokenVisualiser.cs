@@ -1,23 +1,21 @@
-using System.Text.RegularExpressions;
+using Compiler.Imperative;
 
 namespace Compiler;
 
-public static class TokenVisualiser
+internal static class TokenVisualiser
 {
-    public static void VisualiseTokensIntoSourceCode(string from, string to)
+    public static void VisualiseTokensIntoSourceCode(
+        IEnumerable<(Token token, CustomLexLocation lexLocation)> tokensData, 
+        string to)
     {
         File.Delete(to);
-        var tokens = File.ReadAllText(from).Split(Environment.NewLine + Environment.NewLine,
-            StringSplitOptions.RemoveEmptyEntries);
         var line = 1;
-        foreach (var tk in tokens)
+        foreach (var (token, lexLocation) in tokensData)
         {
-            var match = Regex.Match(tk,
-                @"Token of type ([A-Z_]+) encountered\.\r?\n(\d+):(\d+) - \d+:\d+\r?\nUnderlying string: (.+)");
-            var tokenType = match.Groups[1].Value;
-            var lineNumber = int.Parse(match.Groups[2].Value);
-            var column = int.Parse(match.Groups[3].Value);
-            var uStr = match.Groups[4].Value;
+            var tokenType = token.ToString();
+            var lineNumber = lexLocation.StartLine;
+            var column = lexLocation.StartColumn;
+            var uStr = lexLocation.UnderlyingString;
             string textToWrite;
             if (line == lineNumber)
             {

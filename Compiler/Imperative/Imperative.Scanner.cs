@@ -1,9 +1,17 @@
-using QUT.Gppg;
+using System.Text;
 
 namespace Compiler.Imperative;
 
 internal partial class ImperativeScanner
 {
+    private readonly string? _logsFilePath;
+
+    public ImperativeScanner(string inputFilePath, string logsFilePath) 
+        : this(new FileStream(inputFilePath, FileMode.Open))
+    {
+        _logsFilePath = logsFilePath;
+    }
+    
     private int GetTokenData(Token tokenType)
     {
         yylloc = new(tokLin, tokCol, tokELin, tokECol, yytext);
@@ -21,7 +29,10 @@ internal partial class ImperativeScanner
             Console.WriteLine(outputLine);
         }
 
-        File.AppendAllLines(@"output.txt", outputLines);
+        if (_logsFilePath != null)
+        {
+            File.AppendAllLines(_logsFilePath, outputLines);
+        }
 
         return (int)tokenType;
     }
@@ -31,5 +42,22 @@ internal partial class ImperativeScanner
         base.yyerror(format, args);
         Console.WriteLine(format, args);
         Console.WriteLine();
+    }
+    
+    public static (Token token, CustomLexLocation lexLocation)[] GetAllTokens(string inputText)
+    {
+        var inputBuffer = Encoding.Default.GetBytes(inputText);
+        var stream = new MemoryStream(inputBuffer);
+        var scanner = new ImperativeScanner(stream);
+
+        var tokensData = new List<(Token token, CustomLexLocation lexLocation)>();
+        Token currentToken;
+        do
+        {
+            currentToken = (Token)scanner.yylex();
+            tokensData.Add((currentToken, scanner.yylloc));
+        } while (currentToken != Token.EOF);
+
+        return tokensData.ToArray();
     }
 }

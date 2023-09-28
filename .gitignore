@@ -43,5 +43,5 @@ msbuild.wrn
 *.lst
 
 # Running program output
-*/output.txt
-*/output2.txt
+*/logs.txt
+*/visualizedTokens.txt
