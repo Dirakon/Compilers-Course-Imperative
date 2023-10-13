@@ -1,15 +1,31 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using CommandLine;
 using Compiler;
 using Compiler.Imperative;
 
-var parser = new ImperativeParser();
 
-var filename = args[0];
+Parser.Default.ParseArguments<CommandLineOptions>(args)
+    .WithParsed(o =>
+    {
+        var scanner = new ImperativeScanner(o.InputFile, o.LogsOutputFile);
+        var parser = new ImperativeParser(scanner, o.LogsOutputFile);
 
-// TODO: figure out how to work with output file in a better way
-File.Delete($"output.txt");
-parser.Parse(File.ReadAllText($"Assets/{filename}.txt"));
-TokenVisualiser.VisualiseTokensIntoSourceCode("output.txt", "output2.txt");
-// Console.WriteLine($"WE PARSED SOMETHING. WE GOT: {parser.SomeValue}");
+        // TODO: figure out how to work with output file in a better way
+        File.Delete(o.LogsOutputFile);
+        parser.Parse();
 
-// TODO: take CLI arguments, compile code, run with args, output result
+        TokenVisualiser.VisualiseTokensIntoSourceCode(
+            ImperativeScanner.GetAllTokens(File.ReadAllText(o.InputFile)),
+            o.TokenVisualizationOutputFile);
+    });
+
+public class CommandLineOptions
+{
+    [Option('i', "input", Required = true, HelpText = "Source file to compile.")]
+    public required string InputFile { get; init; }
+
+    [Option('t', "visualizeTokens", Required = false, HelpText = "Path to file where to output visualized tokens.")]
+    public string TokenVisualizationOutputFile { get; init; } = "visualizedTokens.txt";
+
+    [Option('l', "logs", Required = false, HelpText = "Path to file where to output logs.")]
+    public string LogsOutputFile { get; init; } = "logs.txt";
+}
