@@ -4,31 +4,7 @@ namespace Compiler;
 
 public class CustomLexLocation : IMerge<CustomLexLocation>
 {
-    /// <summary>
-    ///     The line at which the text span starts.
-    /// </summary>
-    public string UnderlyingString { get; }
-
-    /// <summary>
-    ///     The line at which the text span starts.
-    /// </summary>
-    public int StartLine { get; }
-
-    /// <summary>
-    ///     The column at which the text span starts.
-    /// </summary>
-    public int StartColumn { get; }
-
-    /// <summary>
-    ///     The line on which the text span ends.
-    /// </summary>
-    public int EndLine { get; }
-
-    /// <summary>
-    ///     The column of the first character
-    ///     beyond the end of the text span.
-    /// </summary>
-    public int EndColumn { get; }
+    public static readonly CustomLexLocation Empty = null!;
 
     /// <summary>
     ///     Default no-arg constructor.
@@ -57,6 +33,32 @@ public class CustomLexLocation : IMerge<CustomLexLocation>
     }
 
     /// <summary>
+    ///     The line at which the text span starts.
+    /// </summary>
+    public string UnderlyingString { get; }
+
+    /// <summary>
+    ///     The line at which the text span starts.
+    /// </summary>
+    public int StartLine { get; }
+
+    /// <summary>
+    ///     The column at which the text span starts.
+    /// </summary>
+    public int StartColumn { get; }
+
+    /// <summary>
+    ///     The line on which the text span ends.
+    /// </summary>
+    public int EndLine { get; }
+
+    /// <summary>
+    ///     The column of the first character
+    ///     beyond the end of the text span.
+    /// </summary>
+    public int EndColumn { get; }
+
+    /// <summary>
     ///     Create a text location which spans from the
     ///     start of "this" to the end of the argument "last"
     /// </summary>
@@ -64,6 +66,10 @@ public class CustomLexLocation : IMerge<CustomLexLocation>
     /// <returns>The merged span</returns>
     public CustomLexLocation Merge(CustomLexLocation last)
     {
+        if (this == Empty)
+            return last;
+        if (last == Empty)
+            return this;
         // TODO: add explanation why underlying string is empty (because we dont need it)
         return new CustomLexLocation(StartLine, StartColumn, last.EndLine, last.EndColumn, "");
     }

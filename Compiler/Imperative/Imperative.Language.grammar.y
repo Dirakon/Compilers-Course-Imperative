@@ -5,7 +5,7 @@
 %visibility internal
 %tokentype Token
 
-%YYSTYPE ILexem
+%YYSTYPE INode
 
 %start main
 

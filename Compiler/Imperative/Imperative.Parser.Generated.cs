@@ -3,8 +3,8 @@
 // (see accompanying GPPGcopyright.rtf)
 
 // GPPG version 1.5.2
-// DateTime: 9/17/2023 8:09:00 PM
-// Input file <Imperative/Imperative.Language.grammar.y - 9/17/2023 8:08:59 PM>
+// DateTime: 10/14/2023 12:38:00 AM
+// Input file <Imperative/Imperative.Language.grammar.y - 10/14/2023 12:37:53 AM>
 
 // options: no-lines gplex
 
@@ -29,7 +29,7 @@ internal enum Token {error=2,EOF=3,IDENTIFIER=4,BOOL=5,INT=6,
 
 // Abstract base class for GPLEX scanners
 [GeneratedCodeAttribute( "Gardens Point Parser Generator", "1.5.2")]
-internal abstract class ScanBase : AbstractScanner<ILexem,CustomLexLocation> {
+internal abstract class ScanBase : AbstractScanner<INode,CustomLexLocation> {
   private CustomLexLocation __yylloc = new CustomLexLocation();
   public override CustomLexLocation yylloc { get { return __yylloc; } set { __yylloc = value; } }
   protected virtual bool yywrap() { return true; }
@@ -39,15 +39,15 @@ internal abstract class ScanBase : AbstractScanner<ILexem,CustomLexLocation> {
 [GeneratedCodeAttribute( "Gardens Point Parser Generator", "1.5.2")]
 internal class ScanObj {
   public int token;
-  public ILexem yylval;
+  public INode yylval;
   public CustomLexLocation yylloc;
-  public ScanObj( int t, ILexem val, CustomLexLocation loc ) {
+  public ScanObj( int t, INode val, CustomLexLocation loc ) {
     this.token = t; this.yylval = val; this.yylloc = loc;
   }
 }
 
 [GeneratedCodeAttribute( "Gardens Point Parser Generator", "1.5.2")]
-internal partial class ImperativeParser: ShiftReduceParser<ILexem, CustomLexLocation>
+internal partial class ImperativeParser: ShiftReduceParser<INode, CustomLexLocation>
 {
 #pragma warning disable 649
   private static Dictionary<int, string> aliases;
