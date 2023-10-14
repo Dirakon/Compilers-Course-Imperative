@@ -3,8 +3,8 @@
 // (see accompanying GPPGcopyright.rtf)
 
 // GPPG version 1.5.2
-// DateTime: 10/14/2023 12:38:00 AM
-// Input file <Imperative/Imperative.Language.grammar.y - 10/14/2023 12:37:53 AM>
+// DateTime: 10/14/2023 6:50:39 PM
+// Input file <Imperative/Imperative.Language.grammar.y - 10/14/2023 6:50:38 PM>
 
 // options: no-lines gplex
 
@@ -52,26 +52,28 @@ internal partial class ImperativeParser: ShiftReduceParser<INode, CustomLexLocat
 #pragma warning disable 649
   private static Dictionary<int, string> aliases;
 #pragma warning restore 649
-  private static Rule[] rules = new Rule[4];
-  private static State[] states = new State[8];
+  private static Rule[] rules = new Rule[7];
+  private static State[] states = new State[7];
   private static string[] nonTerms = new string[] {
-      "main", "$accept", "routine", };
+      "Program", "$accept", "DeclarationList", "Declaration", };
 
   static ImperativeParser() {
-    states[0] = new State(new int[]{13,3},new int[]{-1,1});
+    states[0] = new State(new int[]{9,6,3,-2},new int[]{-1,1,-3,3,-4,4});
     states[1] = new State(new int[]{3,2});
     states[2] = new State(-1);
-    states[3] = new State(new int[]{4,4});
-    states[4] = new State(new int[]{24,5});
-    states[5] = new State(new int[]{25,6});
-    states[6] = new State(new int[]{31,7});
-    states[7] = new State(-2);
+    states[3] = new State(-3);
+    states[4] = new State(new int[]{9,6,3,-4},new int[]{-3,5,-4,4});
+    states[5] = new State(-5);
+    states[6] = new State(-6);
 
     for (int sNo = 0; sNo < states.Length; sNo++) states[sNo].number = sNo;
 
     rules[1] = new Rule(-2, new int[]{-1,3});
-    rules[2] = new Rule(-1, new int[]{13,4,24,25,31});
-    rules[3] = new Rule(-3, new int[]{13});
+    rules[2] = new Rule(-1, new int[]{});
+    rules[3] = new Rule(-1, new int[]{-3});
+    rules[4] = new Rule(-3, new int[]{});
+    rules[5] = new Rule(-3, new int[]{-4,-3});
+    rules[6] = new Rule(-4, new int[]{9});
   }
 
   protected override void Initialize() {
@@ -86,6 +88,21 @@ internal partial class ImperativeParser: ShiftReduceParser<INode, CustomLexLocat
 #pragma warning disable 162, 1522
     switch (action)
     {
+      case 2: // Program -> /* empty */
+{ var node = new Program(new EmptyNodeList<IDeclaration>()); CurrentSemanticValue = node; RootNode = node; }
+        break;
+      case 3: // Program -> DeclarationList
+{ var node = new Program((INodeList<IDeclaration>) ValueStack[ValueStack.Depth-1]); CurrentSemanticValue = node; RootNode = node; }
+        break;
+      case 4: // DeclarationList -> /* empty */
+{ CurrentSemanticValue = new EmptyNodeList<IDeclaration>(); }
+        break;
+      case 5: // DeclarationList -> Declaration, DeclarationList
+{CurrentSemanticValue = new NonEmptyNodeList<IDeclaration>(
+        (IDeclaration)ValueStack[ValueStack.Depth-2], 
+        (INodeList<IDeclaration>)ValueStack[ValueStack.Depth-1], 
+        ((IDeclaration)ValueStack[ValueStack.Depth-2]).LexLocation.Merge(((INodeList<IDeclaration>)ValueStack[ValueStack.Depth-1]).LexLocation));}
+        break;
     }
 #pragma warning restore 162, 1522
   }

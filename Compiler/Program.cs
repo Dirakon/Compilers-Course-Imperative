@@ -13,6 +13,8 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
         File.Delete(o.LogsOutputFile);
         parser.Parse();
 
+        var rootNode = parser.RootNode;
+
         TokenVisualiser.VisualiseTokensIntoSourceCode(
             ImperativeScanner.GetAllTokens(File.ReadAllText(o.InputFile)),
             o.TokenVisualizationOutputFile);

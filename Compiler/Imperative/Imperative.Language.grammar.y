@@ -7,7 +7,7 @@
 
 %YYSTYPE INode
 
-%start main
+%start Program
 
 %token IDENTIFIER  
 
@@ -68,10 +68,29 @@
 
 %%
 
-main   :  ROUTINE IDENTIFIER ROUND_OPEN ROUND_CLOSE COLON  //{$$ = new Routine(@1.underlyingString);}//routine IDENTIFIER arguments COLON REAL IS RETURN identifier PLUS identifier SEMICOLON END            {}
-      ;
+Program
+: /* empty */ { var node = new Program(new EmptyNodeList<IDeclaration>()); $$ = node; RootNode = node; }
+| DeclarationList { var node = new Program((INodeList<IDeclaration>) $1); $$ = node; RootNode = node; }
+;
 
-routine : ROUTINE                          // {$$ = new Routine(@1);}
-       ;
+DeclarationList
+: /* empty */ { $$ = new EmptyNodeList<IDeclaration>(); }
+| Declaration DeclarationList {$$ = new NonEmptyNodeList<IDeclaration>(
+        (IDeclaration)$1, 
+        (INodeList<IDeclaration>)$2, 
+        ((IDeclaration)$1).LexLocation.Merge(((INodeList<IDeclaration>)$2).LexLocation));}
+;
+
+Declaration
+: ROUTINE IDENTIFIER ROUND_OPEN ParametersList ROUND_CLOSE{ $$ = new EmptyNodeList<IDeclaration>(); }
+| Declaration DeclarationList {$$ = new NonEmptyNodeList<IDeclaration>(
+        (IDeclaration)$1, 
+        (INodeList<IDeclaration>)$2, 
+        ((IDeclaration)$1).LexLocation.Merge(((INodeList<IDeclaration>)$2).LexLocation));}
+;
+
+Declaration
+: IS
+;
 
 %%

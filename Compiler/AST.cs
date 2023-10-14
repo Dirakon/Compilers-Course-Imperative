@@ -9,12 +9,18 @@ public interface INodeList<T> : INode where T : INode
 {
 }
 
-public record NonEmptyNodeList<T>(T ThisNode, INodeList<T>? OtherNode, CustomLexLocation LexLocation) : INodeList<T>
+public record NonEmptyNodeList<T>(T ThisNode, INodeList<T> OtherNodes, CustomLexLocation LexLocation) : INodeList<T>
     where T : INode;
 
-public record EmptyNodeList<T>(CustomLexLocation LexLocation) : INodeList<T> where T : INode;
+public record EmptyNodeList<T> : INodeList<T> where T : INode
+{
+    public CustomLexLocation LexLocation { get; } = CustomLexLocation.Empty;
+}
 
-public record Program(INodeList<IDeclaration> Declarations, CustomLexLocation LexLocation) : INode;
+public record Program(INodeList<IDeclaration> Declarations) : INode
+{
+    public CustomLexLocation LexLocation { get; } = Declarations.LexLocation;
+}
 
 public interface IDeclaration : INode
 {
