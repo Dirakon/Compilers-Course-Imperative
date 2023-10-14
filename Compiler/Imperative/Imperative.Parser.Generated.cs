@@ -3,8 +3,8 @@
 // (see accompanying GPPGcopyright.rtf)
 
 // GPPG version 1.5.2
-// DateTime: 10/14/2023 6:50:39 PM
-// Input file <Imperative/Imperative.Language.grammar.y - 10/14/2023 6:50:38 PM>
+// DateTime: 10/14/2023 9:30:48 PM
+// Input file <Imperative/Imperative.Language.grammar.y - 10/14/2023 9:30:46 PM>
 
 // options: no-lines gplex
 
@@ -52,19 +52,125 @@ internal partial class ImperativeParser: ShiftReduceParser<INode, CustomLexLocat
 #pragma warning disable 649
   private static Dictionary<int, string> aliases;
 #pragma warning restore 649
-  private static Rule[] rules = new Rule[7];
-  private static State[] states = new State[7];
+  private static Rule[] rules = new Rule[62];
+  private static State[] states = new State[109];
   private static string[] nonTerms = new string[] {
-      "Program", "$accept", "DeclarationList", "Declaration", };
+      "Program", "$accept", "DeclarationList", "Declaration", "ParametersList", 
+      "Type", "Body", "SimpleDeclaration", "VariableDeclaration", "TypeDeclaration", 
+      "Statement", "Parameter", "Expression", "VariableDeclarationList", "Relation", 
+      "Simple", "Summand", "Factor", "Primary", "ModifiablePrimary", "ModifiablePrimaryOperationList", 
+      };
 
   static ImperativeParser() {
-    states[0] = new State(new int[]{9,6,3,-2},new int[]{-1,1,-3,3,-4,4});
+    states[0] = new State(new int[]{13,6,12,34,9,108,3,-2},new int[]{-1,1,-3,3,-4,4,-8,105,-9,106,-10,107});
     states[1] = new State(new int[]{3,2});
     states[2] = new State(-1);
     states[3] = new State(-3);
-    states[4] = new State(new int[]{9,6,3,-4},new int[]{-3,5,-4,4});
+    states[4] = new State(new int[]{13,6,12,34,9,108,3,-4},new int[]{-3,5,-4,4,-8,105,-9,106,-10,107});
     states[5] = new State(-5);
-    states[6] = new State(-6);
+    states[6] = new State(new int[]{4,7});
+    states[7] = new State(new int[]{24,8});
+    states[8] = new State(new int[]{4,102,25,-13},new int[]{-5,9,-12,99});
+    states[9] = new State(new int[]{25,10});
+    states[10] = new State(new int[]{31,11});
+    states[11] = new State(new int[]{6,17,7,18,5,19,4,20,22,21,23,26},new int[]{-6,12});
+    states[12] = new State(new int[]{9,13});
+    states[13] = new State(new int[]{9,16},new int[]{-7,14});
+    states[14] = new State(new int[]{10,15});
+    states[15] = new State(-6);
+    states[16] = new State(-10);
+    states[17] = new State(-17);
+    states[18] = new State(-18);
+    states[19] = new State(-19);
+    states[20] = new State(-20);
+    states[21] = new State(new int[]{28,22,6,17,7,18,5,19,4,20,22,21,23,26},new int[]{-6,98});
+    states[22] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-13,23,-15,40,-16,43,-17,46,-18,49,-19,52,-20,63});
+    states[23] = new State(new int[]{29,24});
+    states[24] = new State(new int[]{6,17,7,18,5,19,4,20,22,21,23,26},new int[]{-6,25});
+    states[25] = new State(-21);
+    states[26] = new State(new int[]{26,27});
+    states[27] = new State(new int[]{12,34,27,-24},new int[]{-14,28,-9,31});
+    states[28] = new State(new int[]{27,29});
+    states[29] = new State(new int[]{10,30});
+    states[30] = new State(-23);
+    states[31] = new State(new int[]{30,32});
+    states[32] = new State(new int[]{12,34,27,-24},new int[]{-14,33,-9,31});
+    states[33] = new State(-25);
+    states[34] = new State(new int[]{4,35});
+    states[35] = new State(new int[]{31,36,9,96});
+    states[36] = new State(new int[]{6,17,7,18,5,19,4,20,22,21,23,26},new int[]{-6,37});
+    states[37] = new State(new int[]{9,38,13,-28,12,-28,3,-28,30,-28});
+    states[38] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-13,39,-15,40,-16,43,-17,46,-18,49,-19,52,-20,63});
+    states[39] = new State(-26);
+    states[40] = new State(new int[]{40,41,41,92,42,94,29,-29,13,-29,12,-29,9,-29,3,-29,30,-29,25,-29});
+    states[41] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-15,42,-16,43,-17,46,-18,49,-19,52,-20,63});
+    states[42] = new State(-30);
+    states[43] = new State(new int[]{46,44,44,82,47,84,45,86,48,88,49,90,40,-33,41,-33,42,-33,29,-33,13,-33,12,-33,9,-33,3,-33,30,-33,25,-33});
+    states[44] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-16,45,-17,46,-18,49,-19,52,-20,63});
+    states[45] = new State(-34);
+    states[46] = new State(new int[]{36,47,35,80,46,-40,44,-40,47,-40,45,-40,48,-40,49,-40,40,-40,41,-40,42,-40,29,-40,13,-40,12,-40,9,-40,3,-40,30,-40,25,-40});
+    states[47] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-17,48,-18,49,-19,52,-20,63});
+    states[48] = new State(-41);
+    states[49] = new State(new int[]{37,50,38,76,39,78,36,-43,35,-43,46,-43,44,-43,47,-43,45,-43,48,-43,49,-43,40,-43,41,-43,42,-43,29,-43,13,-43,12,-43,9,-43,3,-43,30,-43,25,-43});
+    states[50] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-18,51,-19,52,-20,63});
+    states[51] = new State(-44);
+    states[52] = new State(-47);
+    states[53] = new State(-49);
+    states[54] = new State(-50);
+    states[55] = new State(-51);
+    states[56] = new State(new int[]{50,57,51,58});
+    states[57] = new State(-52);
+    states[58] = new State(-55);
+    states[59] = new State(new int[]{50,60,51,61});
+    states[60] = new State(-53);
+    states[61] = new State(-56);
+    states[62] = new State(-54);
+    states[63] = new State(-57);
+    states[64] = new State(new int[]{34,66,28,69,37,-59,38,-59,39,-59,36,-59,35,-59,46,-59,44,-59,47,-59,45,-59,48,-59,49,-59,40,-59,41,-59,42,-59,29,-59,13,-59,12,-59,9,-59,3,-59,30,-59,25,-59},new int[]{-21,65});
+    states[65] = new State(-58);
+    states[66] = new State(new int[]{4,67});
+    states[67] = new State(new int[]{34,66,28,69,37,-59,38,-59,39,-59,36,-59,35,-59,46,-59,44,-59,47,-59,45,-59,48,-59,49,-59,40,-59,41,-59,42,-59,29,-59,13,-59,12,-59,9,-59,3,-59,30,-59,25,-59},new int[]{-21,68});
+    states[68] = new State(-60);
+    states[69] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-13,70,-15,40,-16,43,-17,46,-18,49,-19,52,-20,63});
+    states[70] = new State(new int[]{29,71});
+    states[71] = new State(new int[]{34,66,28,69,37,-59,38,-59,39,-59,36,-59,35,-59,46,-59,44,-59,47,-59,45,-59,48,-59,49,-59,40,-59,41,-59,42,-59,29,-59,13,-59,12,-59,9,-59,3,-59,30,-59,25,-59},new int[]{-21,72});
+    states[72] = new State(-61);
+    states[73] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-13,74,-15,40,-16,43,-17,46,-18,49,-19,52,-20,63});
+    states[74] = new State(new int[]{25,75});
+    states[75] = new State(-48);
+    states[76] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-18,77,-19,52,-20,63});
+    states[77] = new State(-45);
+    states[78] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-18,79,-19,52,-20,63});
+    states[79] = new State(-46);
+    states[80] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-17,81,-18,49,-19,52,-20,63});
+    states[81] = new State(-42);
+    states[82] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-16,83,-17,46,-18,49,-19,52,-20,63});
+    states[83] = new State(-35);
+    states[84] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-16,85,-17,46,-18,49,-19,52,-20,63});
+    states[85] = new State(-36);
+    states[86] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-16,87,-17,46,-18,49,-19,52,-20,63});
+    states[87] = new State(-37);
+    states[88] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-16,89,-17,46,-18,49,-19,52,-20,63});
+    states[89] = new State(-38);
+    states[90] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-16,91,-17,46,-18,49,-19,52,-20,63});
+    states[91] = new State(-39);
+    states[92] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-15,93,-16,43,-17,46,-18,49,-19,52,-20,63});
+    states[93] = new State(-31);
+    states[94] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-15,95,-16,43,-17,46,-18,49,-19,52,-20,63});
+    states[95] = new State(-32);
+    states[96] = new State(new int[]{53,53,52,54,50,55,36,56,35,59,51,62,4,64,24,73},new int[]{-13,97,-15,40,-16,43,-17,46,-18,49,-19,52,-20,63});
+    states[97] = new State(-27);
+    states[98] = new State(-22);
+    states[99] = new State(new int[]{32,100,25,-15});
+    states[100] = new State(new int[]{4,102,25,-13},new int[]{-5,101,-12,99});
+    states[101] = new State(-14);
+    states[102] = new State(new int[]{31,103});
+    states[103] = new State(new int[]{6,17,7,18,5,19,4,20,22,21,23,26},new int[]{-6,104});
+    states[104] = new State(-16);
+    states[105] = new State(-7);
+    states[106] = new State(-8);
+    states[107] = new State(-9);
+    states[108] = new State(-12);
 
     for (int sNo = 0; sNo < states.Length; sNo++) states[sNo].number = sNo;
 
@@ -73,7 +179,62 @@ internal partial class ImperativeParser: ShiftReduceParser<INode, CustomLexLocat
     rules[3] = new Rule(-1, new int[]{-3});
     rules[4] = new Rule(-3, new int[]{});
     rules[5] = new Rule(-3, new int[]{-4,-3});
-    rules[6] = new Rule(-4, new int[]{9});
+    rules[6] = new Rule(-4, new int[]{13,4,24,-5,25,31,-6,9,-7,10});
+    rules[7] = new Rule(-4, new int[]{-8});
+    rules[8] = new Rule(-8, new int[]{-9});
+    rules[9] = new Rule(-8, new int[]{-10});
+    rules[10] = new Rule(-7, new int[]{9});
+    rules[11] = new Rule(-11, new int[]{9});
+    rules[12] = new Rule(-10, new int[]{9});
+    rules[13] = new Rule(-5, new int[]{});
+    rules[14] = new Rule(-5, new int[]{-12,32,-5});
+    rules[15] = new Rule(-5, new int[]{-12});
+    rules[16] = new Rule(-12, new int[]{4,31,-6});
+    rules[17] = new Rule(-6, new int[]{6});
+    rules[18] = new Rule(-6, new int[]{7});
+    rules[19] = new Rule(-6, new int[]{5});
+    rules[20] = new Rule(-6, new int[]{4});
+    rules[21] = new Rule(-6, new int[]{22,28,-13,29,-6});
+    rules[22] = new Rule(-6, new int[]{22,-6});
+    rules[23] = new Rule(-6, new int[]{23,26,-14,27,10});
+    rules[24] = new Rule(-14, new int[]{});
+    rules[25] = new Rule(-14, new int[]{-9,30,-14});
+    rules[26] = new Rule(-9, new int[]{12,4,31,-6,9,-13});
+    rules[27] = new Rule(-9, new int[]{12,4,9,-13});
+    rules[28] = new Rule(-9, new int[]{12,4,31,-6});
+    rules[29] = new Rule(-13, new int[]{-15});
+    rules[30] = new Rule(-13, new int[]{-15,40,-15});
+    rules[31] = new Rule(-13, new int[]{-15,41,-15});
+    rules[32] = new Rule(-13, new int[]{-15,42,-15});
+    rules[33] = new Rule(-15, new int[]{-16});
+    rules[34] = new Rule(-15, new int[]{-16,46,-16});
+    rules[35] = new Rule(-15, new int[]{-16,44,-16});
+    rules[36] = new Rule(-15, new int[]{-16,47,-16});
+    rules[37] = new Rule(-15, new int[]{-16,45,-16});
+    rules[38] = new Rule(-15, new int[]{-16,48,-16});
+    rules[39] = new Rule(-15, new int[]{-16,49,-16});
+    rules[40] = new Rule(-16, new int[]{-17});
+    rules[41] = new Rule(-16, new int[]{-17,36,-17});
+    rules[42] = new Rule(-16, new int[]{-17,35,-17});
+    rules[43] = new Rule(-17, new int[]{-18});
+    rules[44] = new Rule(-17, new int[]{-18,37,-18});
+    rules[45] = new Rule(-17, new int[]{-18,38,-18});
+    rules[46] = new Rule(-17, new int[]{-18,39,-18});
+    rules[47] = new Rule(-18, new int[]{-19});
+    rules[48] = new Rule(-18, new int[]{24,-13,25});
+    rules[49] = new Rule(-19, new int[]{53});
+    rules[50] = new Rule(-19, new int[]{52});
+    rules[51] = new Rule(-19, new int[]{50});
+    rules[52] = new Rule(-19, new int[]{36,50});
+    rules[53] = new Rule(-19, new int[]{35,50});
+    rules[54] = new Rule(-19, new int[]{51});
+    rules[55] = new Rule(-19, new int[]{36,51});
+    rules[56] = new Rule(-19, new int[]{35,51});
+    rules[57] = new Rule(-19, new int[]{-20});
+    rules[58] = new Rule(-20, new int[]{4,-21});
+    rules[59] = new Rule(-21, new int[]{});
+    rules[60] = new Rule(-21, new int[]{34,4,-21});
+    rules[61] = new Rule(-21, new int[]{28,-13,29,-21});
   }
 
   protected override void Initialize() {
@@ -95,13 +256,216 @@ internal partial class ImperativeParser: ShiftReduceParser<INode, CustomLexLocat
 { var node = new Program((INodeList<IDeclaration>) ValueStack[ValueStack.Depth-1]); CurrentSemanticValue = node; RootNode = node; }
         break;
       case 4: // DeclarationList -> /* empty */
-{ CurrentSemanticValue = new EmptyNodeList<IDeclaration>(); }
+{ CurrentSemanticValue = new EmptyNodeList<IDeclaration>(); CurrentLocationSpan = CurrentSemanticValue.LexLocation; }
         break;
       case 5: // DeclarationList -> Declaration, DeclarationList
 {CurrentSemanticValue = new NonEmptyNodeList<IDeclaration>(
-        (IDeclaration)ValueStack[ValueStack.Depth-2], 
+        (IDeclaration)ValueStack[ValueStack.Depth-2],
         (INodeList<IDeclaration>)ValueStack[ValueStack.Depth-1], 
-        ((IDeclaration)ValueStack[ValueStack.Depth-2]).LexLocation.Merge(((INodeList<IDeclaration>)ValueStack[ValueStack.Depth-1]).LexLocation));}
+        LocationStack[LocationStack.Depth-2].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 6: // Declaration -> ROUTINE, IDENTIFIER, ROUND_OPEN, ParametersList, ROUND_CLOSE, 
+              //                COLON, Type, IS, Body, END
+{ CurrentSemanticValue = new RoutineDeclaration(
+      LocationStack[LocationStack.Depth-9].UnderlyingString,
+      (INodeList<Parameter>)ValueStack[ValueStack.Depth-7],
+      (IType) ValueStack[ValueStack.Depth-4],
+      (INodeList<IBodyElement>)ValueStack[ValueStack.Depth-2],
+      LocationStack[LocationStack.Depth-10].Merge(LocationStack[LocationStack.Depth-1])
+    );  CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 7: // Declaration -> SimpleDeclaration
+{CurrentSemanticValue = ValueStack[ValueStack.Depth-1]; CurrentLocationSpan = LocationStack[LocationStack.Depth-1];}
+        break;
+      case 8: // SimpleDeclaration -> VariableDeclaration
+{CurrentSemanticValue = ValueStack[ValueStack.Depth-1]; CurrentLocationSpan = LocationStack[LocationStack.Depth-1];}
+        break;
+      case 9: // SimpleDeclaration -> TypeDeclaration
+{CurrentSemanticValue = ValueStack[ValueStack.Depth-1]; CurrentLocationSpan = LocationStack[LocationStack.Depth-1];}
+        break;
+      case 13: // ParametersList -> /* empty */
+{ CurrentSemanticValue = new EmptyNodeList<Parameter>(); }
+        break;
+      case 14: // ParametersList -> Parameter, COMMA, ParametersList
+{CurrentSemanticValue = new NonEmptyNodeList<Parameter>(
+        (Parameter)ValueStack[ValueStack.Depth-3],
+        (INodeList<Parameter>)ValueStack[ValueStack.Depth-1], 
+        LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 15: // ParametersList -> Parameter
+{CurrentSemanticValue = new NonEmptyNodeList<Parameter>(
+        (Parameter)ValueStack[ValueStack.Depth-1],
+        new EmptyNodeList<Parameter>(), 
+        LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 16: // Parameter -> IDENTIFIER, COLON, Type
+{CurrentSemanticValue = new Parameter(
+    LocationStack[LocationStack.Depth-3].UnderlyingString,
+    (IType)ValueStack[ValueStack.Depth-1],
+    LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])
+); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 17: // Type -> INT
+{CurrentSemanticValue = new IntType(LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 18: // Type -> REAL
+{CurrentSemanticValue = new RealType(LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 19: // Type -> BOOL
+{CurrentSemanticValue = new BoolType(LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 20: // Type -> IDENTIFIER
+{CurrentSemanticValue = new UserDefinedType(LocationStack[LocationStack.Depth-1].UnderlyingString, LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 21: // Type -> ARRAY, SQUARE_OPEN, Expression, SQUARE_CLOSE, Type
+{CurrentSemanticValue = new ArrayType((Expression)ValueStack[ValueStack.Depth-3], (IType) ValueStack[ValueStack.Depth-1], LocationStack[LocationStack.Depth-5].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 22: // Type -> ARRAY, Type
+{CurrentSemanticValue = new ArrayType(null, (IType) ValueStack[ValueStack.Depth-1], LocationStack[LocationStack.Depth-2].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 23: // Type -> RECORD, CURLY_OPEN, VariableDeclarationList, CURLY_CLOSE, END
+{CurrentSemanticValue = new RecordType(
+    (INodeList<VariableDeclaration>)ValueStack[ValueStack.Depth-3], 
+    LocationStack[LocationStack.Depth-5].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 24: // VariableDeclarationList -> /* empty */
+{ CurrentSemanticValue = new EmptyNodeList<VariableDeclaration>(); }
+        break;
+      case 25: // VariableDeclarationList -> VariableDeclaration, SEMICOLON, 
+               //                            VariableDeclarationList
+{CurrentSemanticValue = new NonEmptyNodeList<VariableDeclaration>(
+        (VariableDeclaration)ValueStack[ValueStack.Depth-3],
+        (INodeList<VariableDeclaration>)ValueStack[ValueStack.Depth-1], 
+        LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-2]).Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 26: // VariableDeclaration -> VAR, IDENTIFIER, COLON, Type, IS, Expression
+{ CurrentSemanticValue = new VariableDeclaration(
+        LocationStack[LocationStack.Depth-5].UnderlyingString,
+        (IType)ValueStack[ValueStack.Depth-3], 
+        (Expression)ValueStack[ValueStack.Depth-1], 
+        LocationStack[LocationStack.Depth-6].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 27: // VariableDeclaration -> VAR, IDENTIFIER, IS, Expression
+{ CurrentSemanticValue = new VariableDeclaration(
+        LocationStack[LocationStack.Depth-3].UnderlyingString,
+        null, 
+        (Expression)ValueStack[ValueStack.Depth-1], 
+        LocationStack[LocationStack.Depth-4].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 28: // VariableDeclaration -> VAR, IDENTIFIER, COLON, Type
+{ CurrentSemanticValue = new VariableDeclaration(
+        LocationStack[LocationStack.Depth-3].UnderlyingString,
+        (IType)ValueStack[ValueStack.Depth-1], 
+        null, 
+        LocationStack[LocationStack.Depth-4].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 29: // Expression -> Relation
+{CurrentSemanticValue = new Expression((Relation)ValueStack[ValueStack.Depth-1], null, LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 30: // Expression -> Relation, AND, Relation
+{CurrentSemanticValue = new Expression((Relation)ValueStack[ValueStack.Depth-3], (RelationOperation.And, (Relation)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 31: // Expression -> Relation, OR, Relation
+{CurrentSemanticValue = new Expression((Relation)ValueStack[ValueStack.Depth-3], (RelationOperation.Or, (Relation)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 32: // Expression -> Relation, XOR, Relation
+{CurrentSemanticValue = new Expression((Relation)ValueStack[ValueStack.Depth-3], (RelationOperation.Xor, (Relation)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 33: // Relation -> Simple
+{CurrentSemanticValue = new Relation((Simple)ValueStack[ValueStack.Depth-1], null, LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 34: // Relation -> Simple, LESS, Simple
+{CurrentSemanticValue = new Relation((Simple)ValueStack[ValueStack.Depth-3], (SimpleOperation.Less, (Simple)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 35: // Relation -> Simple, LEQ, Simple
+{CurrentSemanticValue = new Relation((Simple)ValueStack[ValueStack.Depth-3], (SimpleOperation.LessOrEqual, (Simple)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 36: // Relation -> Simple, GREATER, Simple
+{CurrentSemanticValue = new Relation((Simple)ValueStack[ValueStack.Depth-3], (SimpleOperation.Greater, (Simple)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 37: // Relation -> Simple, GEQ, Simple
+{CurrentSemanticValue = new Relation((Simple)ValueStack[ValueStack.Depth-3], (SimpleOperation.GreaterOrEqual, (Simple)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 38: // Relation -> Simple, EQUAL, Simple
+{CurrentSemanticValue = new Relation((Simple)ValueStack[ValueStack.Depth-3], (SimpleOperation.Equal, (Simple)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 39: // Relation -> Simple, NOT_EQUAL, Simple
+{CurrentSemanticValue = new Relation((Simple)ValueStack[ValueStack.Depth-3], (SimpleOperation.NotEqual, (Simple)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 40: // Simple -> Summand
+{CurrentSemanticValue = new Simple((Summand)ValueStack[ValueStack.Depth-1], null, LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 41: // Simple -> Summand, PLUS, Summand
+{CurrentSemanticValue = new Simple((Summand)ValueStack[ValueStack.Depth-3], (SummandOperation.Plus, (Summand)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 42: // Simple -> Summand, MINUS, Summand
+{CurrentSemanticValue = new Simple((Summand)ValueStack[ValueStack.Depth-3], (SummandOperation.Minus, (Summand)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 43: // Summand -> Factor
+{CurrentSemanticValue = new Summand((IFactor)ValueStack[ValueStack.Depth-1], null, LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 44: // Summand -> Factor, MULTIPLY, Factor
+{CurrentSemanticValue = new Summand((IFactor)ValueStack[ValueStack.Depth-3], (FactorOperation.Multiplication, (IFactor)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 45: // Summand -> Factor, DIVIDE, Factor
+{CurrentSemanticValue = new Summand((IFactor)ValueStack[ValueStack.Depth-3], (FactorOperation.Division, (IFactor)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 46: // Summand -> Factor, PERCENT, Factor
+{CurrentSemanticValue = new Summand((IFactor)ValueStack[ValueStack.Depth-3], (FactorOperation.ModularDivision, (IFactor)ValueStack[ValueStack.Depth-1]), LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 47: // Factor -> Primary
+{CurrentSemanticValue = ValueStack[ValueStack.Depth-1]; CurrentLocationSpan = LocationStack[LocationStack.Depth-1];}
+        break;
+      case 48: // Factor -> ROUND_OPEN, Expression, ROUND_CLOSE
+{ CurrentSemanticValue = ValueStack[ValueStack.Depth-2]; CurrentLocationSpan = LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-1]);}
+        break;
+      case 49: // Primary -> TRUE
+{CurrentSemanticValue = new BoolPrimary(true, LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 50: // Primary -> FALSE
+{CurrentSemanticValue = new BoolPrimary(false, LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 51: // Primary -> INT_LITERAL
+{CurrentSemanticValue = new IntegerPrimary(int.Parse(LocationStack[LocationStack.Depth-1].UnderlyingString), LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 52: // Primary -> PLUS, INT_LITERAL
+{CurrentSemanticValue = new IntegerPrimary(int.Parse(LocationStack[LocationStack.Depth-2].UnderlyingString), LocationStack[LocationStack.Depth-2]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 53: // Primary -> MINUS, INT_LITERAL
+{CurrentSemanticValue = new IntegerPrimary(-int.Parse(LocationStack[LocationStack.Depth-2].UnderlyingString), LocationStack[LocationStack.Depth-2]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 54: // Primary -> REAL_LITERAL
+{CurrentSemanticValue = new RealPrimary(double.Parse(LocationStack[LocationStack.Depth-1].UnderlyingString), LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 55: // Primary -> PLUS, REAL_LITERAL
+{CurrentSemanticValue = new RealPrimary(double.Parse(LocationStack[LocationStack.Depth-1].UnderlyingString), LocationStack[LocationStack.Depth-2].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 56: // Primary -> MINUS, REAL_LITERAL
+{CurrentSemanticValue = new RealPrimary(-double.Parse(LocationStack[LocationStack.Depth-1].UnderlyingString), LocationStack[LocationStack.Depth-2].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 57: // Primary -> ModifiablePrimary
+{CurrentSemanticValue = ValueStack[ValueStack.Depth-1]; CurrentLocationSpan = LocationStack[LocationStack.Depth-1];}
+        break;
+      case 58: // ModifiablePrimary -> IDENTIFIER, ModifiablePrimaryOperationList
+{ CurrentSemanticValue = new ModifiablePrimary(
+    LocationStack[LocationStack.Depth-2].UnderlyingString, (INodeList<IModifiablePrimaryOperation>) ValueStack[ValueStack.Depth-1], LocationStack[LocationStack.Depth-2].Merge(LocationStack[LocationStack.Depth-1]));}
+        break;
+      case 59: // ModifiablePrimaryOperationList -> /* empty */
+{ CurrentSemanticValue = new EmptyNodeList<IModifiablePrimaryOperation>(); }
+        break;
+      case 60: // ModifiablePrimaryOperationList -> DOT, IDENTIFIER, 
+               //                                   ModifiablePrimaryOperationList
+{CurrentSemanticValue = new NonEmptyNodeList<IModifiablePrimaryOperation>(
+        new MemberCall(LocationStack[LocationStack.Depth-2].UnderlyingString, LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-2])),
+        (INodeList<IModifiablePrimaryOperation>)ValueStack[ValueStack.Depth-1], 
+        LocationStack[LocationStack.Depth-3].Merge(LocationStack[LocationStack.Depth-2]).Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+        break;
+      case 61: // ModifiablePrimaryOperationList -> SQUARE_OPEN, Expression, SQUARE_CLOSE, 
+               //                                   ModifiablePrimaryOperationList
+{CurrentSemanticValue = new NonEmptyNodeList<IModifiablePrimaryOperation>(
+        new ArrayCall((Expression)ValueStack[ValueStack.Depth-3], LocationStack[LocationStack.Depth-4].Merge(LocationStack[LocationStack.Depth-2])),
+        (INodeList<IModifiablePrimaryOperation>)ValueStack[ValueStack.Depth-1], 
+        LocationStack[LocationStack.Depth-4].Merge(LocationStack[LocationStack.Depth-2]).Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
         break;
     }
 #pragma warning restore 162, 1522
