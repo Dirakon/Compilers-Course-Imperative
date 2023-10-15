@@ -38,10 +38,9 @@ internal partial class ImperativeScanner
     }
 
     public override void yyerror(string format, params object[] args)
-    {
+    { 
         base.yyerror(format, args);
-        Console.WriteLine(format, args);
-        Console.WriteLine();
+        throw new SyntaxErrorException($"At {yylloc}: {string.Format(format, args)}");
     }
     
     public static (Token token, CustomLexLocation lexLocation)[] GetAllTokens(string inputText)
@@ -59,5 +58,13 @@ internal partial class ImperativeScanner
         } while (currentToken != Token.EOF);
 
         return tokensData.ToArray();
+    }
+}
+
+internal class SyntaxErrorException : Exception
+{
+    public SyntaxErrorException(string s) : base(s)
+    {
+        
     }
 }

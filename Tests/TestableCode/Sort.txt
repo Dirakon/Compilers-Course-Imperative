@@ -1,6 +1,6 @@
 routine EntryPoint(): boolean is 
-    var arr1: arr [10] integer;
-    var arr2: arr [10] integer;
+    var arr1: array [10] integer;
+    var arr2: array [10] integer;
     for i in 1..10 loop
         arr1[i] := i;
     end;
@@ -25,13 +25,15 @@ routine BubbleSort(beforeArray: array [] integer, afterArray: array [] integer )
                 beforeArray[j + 1] := temp;
                 swapped := true;
             end;
+        end;
         if swapped = false then
             return;
         end;
+    end;
 end;
 
 routine CheckEqual(beforeArray: array [] integer, afterArray: array [] integer): boolean is
-    for i in 10 loop
+    for i in 1 .. 10 loop
         if beforeArray[i] /= afterArray[i] then
             return false;
         end;   

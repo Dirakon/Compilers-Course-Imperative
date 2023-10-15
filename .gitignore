@@ -45,3 +45,4 @@ msbuild.wrn
 # Running program output
 */logs.txt
 */visualizedTokens.txt
+*/output.txt
