@@ -6,13 +6,17 @@ using Compiler.Imperative;
 Parser.Default.ParseArguments<CommandLineOptions>(args)
     .WithParsed(o =>
     {
-        var scanner = new ImperativeScanner(o.InputFile, o.LogsOutputFile);
-        var parser = new ImperativeParser(scanner, o.LogsOutputFile);
+        using (var scanner = new ImperativeScanner(o.InputFile, o.LogsOutputFile))
+        {
+            var parser = new ImperativeParser(scanner, o.LogsOutputFile);
 
-        // TODO: figure out how to work with output file in a better way
-        File.Delete(o.LogsOutputFile);
-        parser.Parse();
+            // TODO: figure out how to work with output file in a better way
+            File.Delete(o.LogsOutputFile);
+            parser.Parse();
+        }
+        
 
+        
         TokenVisualiser.VisualiseTokensIntoSourceCode(
             ImperativeScanner.GetAllTokens(File.ReadAllText(o.InputFile)),
             o.TokenVisualizationOutputFile);

@@ -1,15 +1,27 @@
+using System.Net;
 using System.Text;
 
 namespace Compiler.Imperative;
 
-internal partial class ImperativeScanner
-{
+internal partial class ImperativeScanner : IDisposable
+{ 
     private readonly string? _logsFilePath;
+    private readonly FileStream _inputFileStream;
 
-    public ImperativeScanner(string inputFilePath, string logsFilePath) 
-        : this(new FileStream(inputFilePath, FileMode.Open))
+
+    public ImperativeScanner(FileStream inputFileStream, bool _)
+        : this(inputFileStream)
     {
+        _inputFileStream = inputFileStream;
+
+    }
+    public ImperativeScanner(string inputFilePath, string logsFilePath)
+        : this (new FileStream(inputFilePath, FileMode.Open), true)
+    {
+      
         _logsFilePath = logsFilePath;
+
+
     }
     
     private int GetTokenData(Token tokenType)
@@ -60,4 +72,12 @@ internal partial class ImperativeScanner
 
         return tokensData.ToArray();
     }
+
+    public void Dispose()
+    {
+        _inputFileStream?.Close();
+        _inputFileStream?.Dispose();
+    }
+
+   
 }
