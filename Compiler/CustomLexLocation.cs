@@ -73,4 +73,11 @@ public class CustomLexLocation : IMerge<CustomLexLocation>
         // TODO: add explanation why underlying string is empty (because we dont need it)
         return new CustomLexLocation(StartLine, StartColumn, last.EndLine, last.EndColumn, "");
     }
+
+    public override string ToString()
+    {
+        return StartLine == EndLine 
+            ? $"line {StartLine}, columns {StartColumn}-{EndColumn}" 
+            : $"lines {StartLine}-{EndLine}";
+    }
 }
