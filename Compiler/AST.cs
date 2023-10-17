@@ -1,3 +1,4 @@
+using System.Collections;
 namespace Compiler;
 
 public interface INode
@@ -5,16 +6,40 @@ public interface INode
     public CustomLexLocation LexLocation { get; }
 }
 
-public interface INodeList<T> : INode where T : INode
+public interface INodeList<T> : IEnumerable<T>, INode where T : INode
 {
 }
 
 public record NonEmptyNodeList<T>(T ThisNode, INodeList<T> OtherNodes, CustomLexLocation LexLocation) : INodeList<T>
-    where T : INode;
+    where T : INode
+{
+    public IEnumerator<T> GetEnumerator()
+    {
+        yield return ThisNode;
+        foreach (var otherNode in OtherNodes)
+        {
+            yield return otherNode;
+        }
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+}
 
 public record EmptyNodeList<T> : INodeList<T> where T : INode
 {
     public CustomLexLocation LexLocation { get; } = CustomLexLocation.Empty;
+    
+    public IEnumerator<T> GetEnumerator()
+    {
+        yield break;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 }
 
 public record Program(INodeList<IDeclaration> Declarations) : INode
@@ -47,23 +72,60 @@ public record TypeDeclaration(string Name, IType Type, CustomLexLocation LexLoca
 
 public interface IType : INode
 {
+    public string GetTypeName();
 }
 
-public record IntType(CustomLexLocation LexLocation) : IType;
+public record IntType(CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return "integer";
+    }
+}
 
-public record RealType(CustomLexLocation LexLocation) : IType;
+public record RealType(CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return "real";
+    }
+}
 
-public record BoolType(CustomLexLocation LexLocation) : IType;
+public record BoolType(CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return "bool";
+    }
+}
 
 /// <summary>
 ///     type myType = int;
 ///     var myVar:myType = ...
 /// </summary>
-public record UserDefinedType(string TypeName, CustomLexLocation LexLocation) : IType;
+public record UserDefinedType(string TypeName, CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return TypeName;
+    }
+}
 
-public record ArrayType(Expression? SizeExpression, IType UnderlyingType, CustomLexLocation LexLocation) : IType;
+public record ArrayType(Expression? SizeExpression, IType UnderlyingType, CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return "array";
+    }
+}
 
-public record RecordType(INodeList<VariableDeclaration> Variables, CustomLexLocation LexLocation) : IType;
+public record RecordType(INodeList<VariableDeclaration> Variables, CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return "record";
+    }
+}
 
 public interface IStatement : IBodyElement
 {

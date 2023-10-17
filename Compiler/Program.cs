@@ -9,26 +9,21 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
         using (var scanner = new ImperativeScanner(o.InputFile, o.LogsOutputFile))
         {
             var parser = new ImperativeParser(scanner, o.LogsOutputFile);
-
-        // TODO: figure out how to work with output file in a better way
-        File.Delete(o.LogsOutputFile);
-        try
-        {
-            parser.Parse();
-        }
-        catch (SyntaxErrorException er)
-        {
-            Console.WriteLine(er.Message);
-        }
             // TODO: figure out how to work with output file in a better way
             File.Delete(o.LogsOutputFile);
-            parser.Parse();
+            try
+            {
+                parser.Parse();
+                AstVisualizer.VisualizeAst(parser.RootNode, o.AstOutputFile);
+            }
+            catch (SyntaxErrorException er)
+            {
+                Console.WriteLine(er.Message);
+            }
         }
-        
-
-        TokenVisualiser.VisualiseTokensIntoSourceCode(
-            ImperativeScanner.GetAllTokens(File.ReadAllText(o.InputFile)),
-            o.TokenVisualizationOutputFile);
+        // TokenVisualiser.VisualiseTokensIntoSourceCode(
+        //     ImperativeScanner.GetAllTokens(File.ReadAllText(o.InputFile)),
+        //     o.TokenVisualizationOutputFile);
     });
 
 public class CommandLineOptions
@@ -41,4 +36,7 @@ public class CommandLineOptions
 
     [Option('l', "logs", Required = false, HelpText = "Path to file where to output logs.")]
     public string LogsOutputFile { get; init; } = "logs.txt";
+    
+    [Option('a', "ast", Required = false, HelpText = "Path to file where to output AST.")]
+    public string AstOutputFile { get; init; } = "ast.dot";
 }
