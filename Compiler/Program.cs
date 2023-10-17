@@ -10,13 +10,22 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
         {
             var parser = new ImperativeParser(scanner, o.LogsOutputFile);
 
+        // TODO: figure out how to work with output file in a better way
+        File.Delete(o.LogsOutputFile);
+        try
+        {
+            parser.Parse();
+        }
+        catch (SyntaxErrorException er)
+        {
+            Console.WriteLine(er.Message);
+        }
             // TODO: figure out how to work with output file in a better way
             File.Delete(o.LogsOutputFile);
             parser.Parse();
         }
         
 
-        
         TokenVisualiser.VisualiseTokensIntoSourceCode(
             ImperativeScanner.GetAllTokens(File.ReadAllText(o.InputFile)),
             o.TokenVisualizationOutputFile);

@@ -77,26 +77,32 @@ public record RoutineCall
 public record WhileLoop
     (Expression Condition, INodeList<IBodyElement> Body, CustomLexLocation LexLocation) : IStatement;
 
-public record ForLoop(string IteratorName, Range Range, CustomLexLocation LexLocation) : IStatement;
+public record ForLoop(string IteratorName, Range Range, INodeList<IBodyElement> Body, CustomLexLocation LexLocation) : IStatement;
 
-public record Range(bool IsReversed, Expression Start, Expression End, CustomLexLocation LexLocation) : IStatement;
+public record Return(Expression? ReturnValue, CustomLexLocation LexLocation) : IStatement;
+
+public record Range(bool IsReversed, Expression Start, Expression End, CustomLexLocation LexLocation) : INode;
 
 public record IfStatement(Expression Condition, INodeList<IBodyElement> ThenBody, INodeList<IBodyElement>? ElseBody,
     CustomLexLocation LexLocation) : IStatement;
 
 
 
-public enum RelationOperation
+public enum RelationOperationType
 {
     And,
     Or,
     Xor
 }
 
-public record Expression(Relation First, (RelationOperation,  Relation)? Second, CustomLexLocation LexLocation) 
+public record RelationOperation(RelationOperationType Type, Relation Relation, CustomLexLocation LexLocation) 
     : INode;
 
-public enum SimpleOperation
+
+public record Expression(Relation First, INodeList<RelationOperation> Operations, CustomLexLocation LexLocation) 
+    : INode;
+
+public enum SimpleOperationType
 {
     Less,
     LessOrEqual,
@@ -106,24 +112,32 @@ public enum SimpleOperation
     NotEqual
 }
 
-public record Relation(Simple First, (SimpleOperation,  Simple)? Second, CustomLexLocation LexLocation) : INode;
+public record SimpleOperation(SimpleOperationType Type,  Simple Simple, CustomLexLocation LexLocation) 
+    : INode;
 
-public enum SummandOperation
+public record Relation(Simple First, INodeList<SimpleOperation> Operations, CustomLexLocation LexLocation) : INode;
+
+public enum SummandOperationType
 {
     Plus,
     Minus
 }
+public record SummandOperation(SummandOperationType Type,  Summand Summand, CustomLexLocation LexLocation) 
+    : INode;
 
-public record Simple(Summand First, (SummandOperation, Summand)? Second, CustomLexLocation LexLocation) : INode;
+public record Simple(Summand First, INodeList<SummandOperation> Operations, CustomLexLocation LexLocation) : INode;
 
-public enum FactorOperation
+public enum FactorOperationType
 {
     Multiplication,
     Division,
     ModularDivision
 }
 
-public record Summand(IFactor First, (FactorOperation,  IFactor)? Second, CustomLexLocation LexLocation) : INode;
+public record FactorOperation(FactorOperationType Type,  IFactor Factor, CustomLexLocation LexLocation) 
+    : INode;
+
+public record Summand(IFactor First,  INodeList<FactorOperation> Operations, CustomLexLocation LexLocation) : INode;
 
 public interface IFactor : INode
 {

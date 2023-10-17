@@ -75,10 +75,10 @@ Program
 
 DeclarationList
 : /* empty */ { $$ = new EmptyNodeList<IDeclaration>(); @$ = $$.LexLocation; }
-| Declaration DeclarationList {$$ = new NonEmptyNodeList<IDeclaration>(
+| Declaration SEMICOLON DeclarationList {$$ = new NonEmptyNodeList<IDeclaration>(
         (IDeclaration)$1,
-        (INodeList<IDeclaration>)$2, 
-        @1.Merge(@2)); @$ = $$.LexLocation;}
+        (INodeList<IDeclaration>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation;}
 ;
 
 Declaration
@@ -89,6 +89,13 @@ Declaration
       (INodeList<IBodyElement>)$9,
       @1.Merge(@10)
     );  @$ = $$.LexLocation;}
+| ROUTINE IDENTIFIER ROUND_OPEN ParametersList ROUND_CLOSE IS Body END { $$ = new RoutineDeclaration(
+      @2.UnderlyingString,
+      (INodeList<Parameter>)$4,
+      null,
+      (INodeList<IBodyElement>)$7,
+      @1.Merge(@8)
+    );  @$ = $$.LexLocation;}
 | SimpleDeclaration {$$ = $1; @$ = @1;}
 ;
 
@@ -98,23 +105,76 @@ SimpleDeclaration
 ;
 
 Body
-: IS // TODO 
+: /* empty */ { $$ = new EmptyNodeList<IBodyElement>(); @$ = $$.LexLocation; }
+| SimpleDeclaration SEMICOLON Body {$$ = new NonEmptyNodeList<IBodyElement>(
+        (ISimpleDeclaration)$1,
+        (INodeList<IBodyElement>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation;}
+| Statement SEMICOLON Body {$$ = new NonEmptyNodeList<IBodyElement>(
+        (IStatement)$1,
+        (INodeList<IBodyElement>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation;}
 ;
 
 Statement
-: IS // TODO 
+: RETURN {$$ = new Return(
+                  null,
+                  @1); @$ = $$.LexLocation;}
+| RETURN Expression {$$ = new Return(
+                  (Expression)$2,
+                  @1.Merge(@2)); @$ = $$.LexLocation;}
+| ModifiablePrimary ASSIGN Expression {$$ = new Assignment(
+                  (ModifiablePrimary)$1,
+                  (Expression)$3,
+                  @1.Merge(@3)); @$ = $$.LexLocation;}
+| RoutineCall {$$ = $1; @$ = @1;}
+| WHILE Expression LOOP Body END {$$ = new WhileLoop(
+                  (Expression)$2,
+                  (INodeList<IBodyElement>)$4,
+                  @1.Merge(@5)); @$ = $$.LexLocation;}
+| FOR IDENTIFIER Range LOOP Body END {$$ = new ForLoop(
+                  @2.UnderlyingString,
+                  (Range)$3,
+                  (INodeList<IBodyElement>)$5,
+                  @1.Merge(@6)); @$ = $$.LexLocation;}
+| IF Expression THEN Body ELSE Body END {$$ = new IfStatement(
+                  (Expression)$2,
+                  (INodeList<IBodyElement>)$4,
+                  (INodeList<IBodyElement>)$6,
+                  @1.Merge(@7)); @$ = $$.LexLocation;}
+| IF Expression THEN Body END {$$ = new IfStatement(
+                  (Expression)$2,
+                  (INodeList<IBodyElement>)$4,
+                  null,
+                  @1.Merge(@5)); @$ = $$.LexLocation;}
+;
+
+Range
+: IN REVERSE Expression RANGE Expression {$$ = new Range(
+                  true,
+                  (Expression)$3,
+                  (Expression)$5,
+                  @1.Merge(@5)); @$ = $$.LexLocation;}
+| IN Expression RANGE Expression {$$ = new Range(
+                  false,
+                  (Expression)$2,
+                  (Expression)$4,
+                  @1.Merge(@4)); @$ = $$.LexLocation;}
 ;
 
 TypeDeclaration
-: IS //  TODO 
+: TYPE IDENTIFIER IS Type { $$ = new TypeDeclaration(
+                  @2.UnderlyingString,
+                  (IType)$4,
+                  @1.Merge(@4)); @$ = $$.LexLocation;}
 ;
 
 ParametersList
-: /* empty */ { $$ = new EmptyNodeList<Parameter>(); }
+: /* empty */ { $$ = new EmptyNodeList<Parameter>(); @$ = $$.LexLocation;}
 | Parameter COMMA ParametersList {$$ = new NonEmptyNodeList<Parameter>(
         (Parameter)$1,
         (INodeList<Parameter>)$3, 
-        @1.Merge(@3)); @$ = $$.LexLocation;}
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation;}
 | Parameter {$$ = new NonEmptyNodeList<Parameter>(
         (Parameter)$1,
         new EmptyNodeList<Parameter>(), 
@@ -136,14 +196,14 @@ Type
 | BOOL {$$ = new BoolType(@1); @$ = $$.LexLocation;}
 | IDENTIFIER {$$ = new UserDefinedType(@1.UnderlyingString, @1); @$ = $$.LexLocation;}
 | ARRAY SQUARE_OPEN Expression SQUARE_CLOSE Type {$$ = new ArrayType((Expression)$3, (IType) $5, @1.Merge(@5)); @$ = $$.LexLocation;}
-| ARRAY Type {$$ = new ArrayType(null, (IType) $2, @1.Merge(@2)); @$ = $$.LexLocation;}
+| ARRAY SQUARE_OPEN SQUARE_CLOSE Type {$$ = new ArrayType(null, (IType) $2, @1.Merge(@2)); @$ = $$.LexLocation;}
 | RECORD CURLY_OPEN VariableDeclarationList CURLY_CLOSE END {$$ = new RecordType(
     (INodeList<VariableDeclaration>)$3, 
     @1.Merge(@5)); @$ = $$.LexLocation;}
 ;
 
 VariableDeclarationList
-: /* empty */ { $$ = new EmptyNodeList<VariableDeclaration>(); }
+: /* empty */ { $$ = new EmptyNodeList<VariableDeclaration>(); @$ = $$.LexLocation;}
 | VariableDeclaration SEMICOLON VariableDeclarationList {$$ = new NonEmptyNodeList<VariableDeclaration>(
         (VariableDeclaration)$1,
         (INodeList<VariableDeclaration>)$3, 
@@ -169,59 +229,198 @@ VariableDeclaration
 ;
 
 Expression
-: Relation {$$ = new Expression((Relation)$1, null, @1); @$ = $$.LexLocation;}
-| Relation AND Relation {$$ = new Expression((Relation)$1, (RelationOperation.And, (Relation)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
-| Relation OR Relation {$$ = new Expression((Relation)$1, (RelationOperation.Or, (Relation)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
-| Relation XOR Relation {$$ = new Expression((Relation)$1, (RelationOperation.Xor, (Relation)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
+: Relation RelationOperationsList {$$ = new Expression((Relation)$1, (INodeList<RelationOperation>)$2, @1.Merge(@2)); 
+    @$ = $$.LexLocation;}
+;
+
+RelationOperationsList
+: /* empty */ { $$ = new EmptyNodeList<RelationOperation>(); @$ = $$.LexLocation;}
+| AND Relation RelationOperationsList {$$ = new NonEmptyNodeList<RelationOperation>(
+        new RelationOperation(
+            RelationOperationType.And,
+            (Relation)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<RelationOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation;}
+| OR Relation RelationOperationsList {$$ = new NonEmptyNodeList<RelationOperation>(
+        new RelationOperation(
+            RelationOperationType.Or,
+            (Relation)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<RelationOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation;}
+| XOR Relation RelationOperationsList {$$ = new NonEmptyNodeList<RelationOperation>(
+        new RelationOperation(
+            RelationOperationType.Xor,
+            (Relation)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<RelationOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation;}
 ;
 
 Relation
-: Simple {$$ = new Relation((Simple)$1, null, @1); @$ = $$.LexLocation;}
-| Simple LESS Simple {$$ = new Relation((Simple)$1, (SimpleOperation.Less, (Simple)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
-| Simple LEQ Simple {$$ = new Relation((Simple)$1, (SimpleOperation.LessOrEqual, (Simple)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
-| Simple GREATER Simple {$$ = new Relation((Simple)$1, (SimpleOperation.Greater, (Simple)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
-| Simple GEQ Simple {$$ = new Relation((Simple)$1, (SimpleOperation.GreaterOrEqual, (Simple)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
-| Simple EQUAL Simple {$$ = new Relation((Simple)$1, (SimpleOperation.Equal, (Simple)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
-| Simple NOT_EQUAL Simple {$$ = new Relation((Simple)$1, (SimpleOperation.NotEqual, (Simple)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
+: Simple SimpleOperationList {$$ = new Relation((Simple)$1, (INodeList<SimpleOperation>)$2, @1.Merge(@2)); 
+    @$ = $$.LexLocation; }
+;
+
+SimpleOperationList
+: /* empty */ { $$ = new EmptyNodeList<SimpleOperation>(); @$ = $$.LexLocation; }
+| LESS Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+        new SimpleOperation(
+            SimpleOperationType.Less,
+            (Simple)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<SimpleOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
+| LEQ Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+        new SimpleOperation(
+            SimpleOperationType.LessOrEqual,
+            (Simple)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<SimpleOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
+| GREATER Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+        new SimpleOperation(
+            SimpleOperationType.Greater,
+            (Simple)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<SimpleOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
+| GEQ Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+        new SimpleOperation(
+            SimpleOperationType.GreaterOrEqual,
+            (Simple)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<SimpleOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
+| EQUAL Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+        new SimpleOperation(
+            SimpleOperationType.Equal,
+            (Simple)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<SimpleOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
+| NOT_EQUAL Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+        new SimpleOperation(
+            SimpleOperationType.NotEqual,
+            (Simple)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<SimpleOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
 ;
 
 Simple
-: Summand {$$ = new Simple((Summand)$1, null, @1); @$ = $$.LexLocation;}
-| Summand PLUS Summand {$$ = new Simple((Summand)$1, (SummandOperation.Plus, (Summand)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
-| Summand MINUS Summand {$$ = new Simple((Summand)$1, (SummandOperation.Minus, (Summand)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
+: Summand SummandOperationsList {$$ = new Simple((Summand)$1, (INodeList<SummandOperation>)$2, @1.Merge(@2)); 
+    @$ = $$.LexLocation;}
+;
+
+SummandOperationsList
+: /* empty */ { $$ = new EmptyNodeList<SummandOperation>(); @$ = $$.LexLocation; }
+| PLUS Summand SummandOperationsList {$$ = new NonEmptyNodeList<SummandOperation>(
+        new SummandOperation(
+            SummandOperationType.Plus,
+            (Summand)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<SummandOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
+| MINUS Summand SummandOperationsList {$$ = new NonEmptyNodeList<SummandOperation>(
+        new SummandOperation(
+            SummandOperationType.Minus,
+            (Summand)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<SummandOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
 ;
 
 Summand
-: Factor {$$ = new Summand((IFactor)$1, null, @1); @$ = $$.LexLocation;}
-| Factor MULTIPLY Factor {$$ = new Summand((IFactor)$1, (FactorOperation.Multiplication, (IFactor)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
-| Factor DIVIDE Factor {$$ = new Summand((IFactor)$1, (FactorOperation.Division, (IFactor)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
-| Factor PERCENT Factor {$$ = new Summand((IFactor)$1, (FactorOperation.ModularDivision, (IFactor)$3), @1.Merge(@3)); @$ = $$.LexLocation;}
+: Factor FactorOperationsList {$$ = new Summand((IFactor)$1, (INodeList<FactorOperation>)$2, @1.Merge(@2)); 
+    @$ = $$.LexLocation;}
 ;
+
+FactorOperationsList
+: /* empty */ { $$ = new EmptyNodeList<FactorOperation>(); @$ = $$.LexLocation; }
+| MULTIPLY Factor FactorOperationsList {$$ = new NonEmptyNodeList<FactorOperation>(
+        new FactorOperation(
+            FactorOperationType.Multiplication,
+            (IFactor)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<FactorOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
+| DIVIDE Factor FactorOperationsList {$$ = new NonEmptyNodeList<FactorOperation>(
+        new FactorOperation(
+            FactorOperationType.Division,
+            (IFactor)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<FactorOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
+| PERCENT Factor FactorOperationsList {$$ = new NonEmptyNodeList<FactorOperation>(
+        new FactorOperation(
+            FactorOperationType.ModularDivision,
+            (IFactor)$2,
+            @1.Merge(@2)
+        ),
+        (INodeList<FactorOperation>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
+;
+
 
 Factor
 : Primary {$$ = $1; @$ = @1;}
-| ROUND_OPEN Expression ROUND_CLOSE { $$ = $2; @$ = @1.Merge(@3);}
+| ROUND_OPEN Expression ROUND_CLOSE { $$ = new ExpressionFactor((Expression)$2, @1.Merge(@3)); @$ = @1.Merge(@3);}
 ;
 
 Primary
 : TRUE {$$ = new BoolPrimary(true, @1); @$ = $$.LexLocation;}
 | FALSE {$$ = new BoolPrimary(false, @1); @$ = $$.LexLocation;}
 | INT_LITERAL {$$ = new IntegerPrimary(int.Parse(@1.UnderlyingString), @1); @$ = $$.LexLocation;}
-| PLUS INT_LITERAL {$$ = new IntegerPrimary(int.Parse(@1.UnderlyingString), @1); @$ = $$.LexLocation;}
-| MINUS INT_LITERAL {$$ = new IntegerPrimary(-int.Parse(@1.UnderlyingString), @1); @$ = $$.LexLocation;}
+| PLUS INT_LITERAL {$$ = new IntegerPrimary(int.Parse(@2.UnderlyingString), @1.Merge(@2)); @$ = $$.LexLocation;}
+| MINUS INT_LITERAL {$$ = new IntegerPrimary(-int.Parse(@2.UnderlyingString), @1.Merge(@2)); @$ = $$.LexLocation;}
 | REAL_LITERAL {$$ = new RealPrimary(double.Parse(@1.UnderlyingString), @1); @$ = $$.LexLocation;}
 | PLUS REAL_LITERAL {$$ = new RealPrimary(double.Parse(@2.UnderlyingString), @1.Merge(@2)); @$ = $$.LexLocation;}
 | MINUS REAL_LITERAL {$$ = new RealPrimary(-double.Parse(@2.UnderlyingString), @1.Merge(@2)); @$ = $$.LexLocation;}
+| RoutineCall {$$ = $1; @$ = @1;}
 | ModifiablePrimary {$$ = $1; @$ = @1;}
+;
+
+RoutineCall
+:  IDENTIFIER ROUND_OPEN ArgumentsList ROUND_CLOSE {$$ = new RoutineCall(
+    @1.UnderlyingString, 
+    (INodeList<Expression>)$3, 
+    @1.Merge(@4)); @$ = $$.LexLocation;}
+;
+
+ArgumentsList
+: /* empty */ { $$ = new EmptyNodeList<Expression>(); @$ = $$.LexLocation;}
+| Expression COMMA ArgumentsList {$$ = new NonEmptyNodeList<Expression>(
+        (Expression)$1,
+        (INodeList<Expression>)$3, 
+        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation;}
+| Expression {$$ = new NonEmptyNodeList<Expression>(
+        (Expression)$1,
+        new EmptyNodeList<Expression>(), 
+        @1); @$ = $$.LexLocation;}
 ;
 
 ModifiablePrimary
 : IDENTIFIER ModifiablePrimaryOperationList { $$ = new ModifiablePrimary(
-    @1.UnderlyingString, (INodeList<IModifiablePrimaryOperation>) $2, @1.Merge(@2));}
+    @1.UnderlyingString, (INodeList<IModifiablePrimaryOperation>) $2, @1.Merge(@2)); @$ = $$.LexLocation;}
 ;
 
 ModifiablePrimaryOperationList
-: /* empty */ { $$ = new EmptyNodeList<IModifiablePrimaryOperation>(); }
+: /* empty */ { $$ = new EmptyNodeList<IModifiablePrimaryOperation>(); @$ = $$.LexLocation; }
 | DOT IDENTIFIER ModifiablePrimaryOperationList {$$ = new NonEmptyNodeList<IModifiablePrimaryOperation>(
         new MemberCall(@2.UnderlyingString, @1.Merge(@2)),
         (INodeList<IModifiablePrimaryOperation>)$3, 

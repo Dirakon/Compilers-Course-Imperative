@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text;
 
 namespace Compiler.Imperative;
@@ -18,10 +17,7 @@ internal partial class ImperativeScanner : IDisposable
     public ImperativeScanner(string inputFilePath, string logsFilePath)
         : this (new FileStream(inputFilePath, FileMode.Open), true)
     {
-      
         _logsFilePath = logsFilePath;
-
-
     }
     
     private int GetTokenData(Token tokenType)
@@ -50,10 +46,9 @@ internal partial class ImperativeScanner : IDisposable
     }
 
     public override void yyerror(string format, params object[] args)
-    {
+    { 
         base.yyerror(format, args);
-        Console.WriteLine(format, args);
-        Console.WriteLine();
+        throw new SyntaxErrorException($"At {yylloc}: {string.Format(format, args)}");
     }
     
     public static (Token token, CustomLexLocation lexLocation)[] GetAllTokens(string inputText)
@@ -80,4 +75,12 @@ internal partial class ImperativeScanner : IDisposable
     }
 
    
+}
+
+internal class SyntaxErrorException : Exception
+{
+    public SyntaxErrorException(string s) : base(s)
+    {
+        
+    }
 }
