@@ -115,7 +115,7 @@ public record ArrayType(Expression? SizeExpression, IType UnderlyingType, Custom
 {
     public string GetTypeName()
     {
-        return "array";
+        return $"array of ${UnderlyingType.GetTypeName()}";
     }
 }
 
