@@ -8,7 +8,7 @@ internal partial class ImperativeScanner : IDisposable
     private readonly FileStream _inputFileStream;
 
 
-    public ImperativeScanner(FileStream inputFileStream, bool _)
+    private ImperativeScanner(FileStream inputFileStream, bool _)
         : this(inputFileStream)
     {
         _inputFileStream = inputFileStream;
@@ -32,10 +32,10 @@ internal partial class ImperativeScanner : IDisposable
             ""
         };
 
-        foreach (var outputLine in outputLines)
+        /*foreach (var outputLine in outputLines)
         {
             Console.WriteLine(outputLine);
-        }
+        }*/
 
         if (_logsFilePath != null)
         {

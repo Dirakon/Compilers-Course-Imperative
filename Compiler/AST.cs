@@ -115,7 +115,7 @@ public record ArrayType(Expression? SizeExpression, IType UnderlyingType, Custom
 {
     public string GetTypeName()
     {
-        return $"array of ${UnderlyingType.GetTypeName()}";
+        return "array";
     }
 }
 
@@ -157,8 +157,14 @@ public enum RelationOperationType
     Xor
 }
 
-public record RelationOperation(RelationOperationType Type, Relation Relation, CustomLexLocation LexLocation) 
-    : INode;
+public record RelationOperation(RelationOperationType Type, Relation Relation, CustomLexLocation LexLocation)
+    : INode
+{
+    public new string GetType()
+    {
+        return Type.ToString();
+    }
+}
 
 
 public record Expression(Relation First, INodeList<RelationOperation> Operations, CustomLexLocation LexLocation) 
@@ -174,8 +180,14 @@ public enum SimpleOperationType
     NotEqual
 }
 
-public record SimpleOperation(SimpleOperationType Type,  Simple Simple, CustomLexLocation LexLocation) 
-    : INode;
+public record SimpleOperation(SimpleOperationType Type, Simple Simple, CustomLexLocation LexLocation)
+    : INode
+{
+    public new string GetType()
+    {
+        return Type.ToString();
+    }
+}
 
 public record Relation(Simple First, INodeList<SimpleOperation> Operations, CustomLexLocation LexLocation) : INode;
 
@@ -184,8 +196,15 @@ public enum SummandOperationType
     Plus,
     Minus
 }
-public record SummandOperation(SummandOperationType Type,  Summand Summand, CustomLexLocation LexLocation) 
-    : INode;
+
+public record SummandOperation(SummandOperationType Type, Summand Summand, CustomLexLocation LexLocation)
+    : INode
+{
+    public new string GetType()
+    {
+        return Type.ToString();
+    }
+}
 
 public record Simple(Summand First, INodeList<SummandOperation> Operations, CustomLexLocation LexLocation) : INode;
 
@@ -196,8 +215,14 @@ public enum FactorOperationType
     ModularDivision
 }
 
-public record FactorOperation(FactorOperationType Type,  IFactor Factor, CustomLexLocation LexLocation) 
-    : INode;
+public record FactorOperation(FactorOperationType Type, IFactor Factor, CustomLexLocation LexLocation)
+    : INode
+{
+    public new string GetType()
+    {
+        return Type.ToString();
+    }
+}
 
 public record Summand(IFactor First,  INodeList<FactorOperation> Operations, CustomLexLocation LexLocation) : INode;
 

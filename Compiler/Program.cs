@@ -21,9 +21,9 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                 Console.WriteLine(er.Message);
             }
         }
-        // TokenVisualiser.VisualiseTokensIntoSourceCode(
-        //     ImperativeScanner.GetAllTokens(File.ReadAllText(o.InputFile)),
-        //     o.TokenVisualizationOutputFile);
+        TokenVisualiser.VisualiseTokensIntoSourceCode(
+            ImperativeScanner.GetAllTokens(File.ReadAllText(o.InputFile)),
+            o.TokenVisualizationOutputFile);
     });
 
 public class CommandLineOptions
