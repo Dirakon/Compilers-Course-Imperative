@@ -97,7 +97,10 @@ public static class AstVisualizer
                 break;
             }
             case ArrayType arrayType:
-                AddExpressionToGraph(arrayType.SizeExpression, graph, node);
+                if (arrayType.SizeExpression != null)
+                {
+                    AddExpressionToGraph(arrayType.SizeExpression, graph, node);
+                }
                 AddIdentifierToGraph(arrayType.UnderlyingType.GetTypeName(), graph, node);
                 break;
         }
@@ -122,8 +125,7 @@ public static class AstVisualizer
         graph.Edges.Add(parentNode.Id, node.Id);
         foreach (var parameter in parameters)
         {
-            var pr = CreateNode(graph,$"{parameter.Name} : {parameter.Type.GetTypeName()}", null);
-            graph.Edges.Add(node.Id, pr.Id);
+            AddVariableToGraph(new VariableDeclaration(parameter.Name, parameter.Type, null, parameter.LexLocation), graph, node);
         }
     }
     private static void AddBodyToGraph(string bodyLabel, IEnumerable<IBodyElement> body, DotGraph graph, DotNode parentNode)
@@ -327,6 +329,7 @@ public static class AstVisualizer
     
     private static DotNode AddSummandToGraph(Summand sum, DotGraph graph, DotNode parentNode)
     {
+        
         if (sum.Operations is EmptyNodeList<FactorOperation>)
         {
              return SwitchPrimary(sum, graph, parentNode);

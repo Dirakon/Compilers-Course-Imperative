@@ -196,7 +196,7 @@ Type
 | BOOL {$$ = new BoolType(@1); @$ = $$.LexLocation;}
 | IDENTIFIER {$$ = new UserDefinedType(@1.UnderlyingString, @1); @$ = $$.LexLocation;}
 | ARRAY SQUARE_OPEN Expression SQUARE_CLOSE Type {$$ = new ArrayType((Expression)$3, (IType) $5, @1.Merge(@5)); @$ = $$.LexLocation;}
-| ARRAY SQUARE_OPEN SQUARE_CLOSE Type {$$ = new ArrayType(null, (IType) $2, @1.Merge(@2)); @$ = $$.LexLocation;}
+| ARRAY SQUARE_OPEN SQUARE_CLOSE Type {$$ = new ArrayType(null, (IType) $4, @1.Merge(@4)); @$ = $$.LexLocation;}
 | RECORD CURLY_OPEN VariableDeclarationList CURLY_CLOSE END {$$ = new RecordType(
     (INodeList<VariableDeclaration>)$3, 
     @1.Merge(@5)); @$ = $$.LexLocation;}
