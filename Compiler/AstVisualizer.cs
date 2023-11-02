@@ -11,7 +11,7 @@ public static class AstVisualizer
     public static void VisualizeAst(Program rootNode, string outputFilePath)
     {
         var graph = new DotGraph(directed: false);
-        var root = CreateNode(graph,"program", null);
+        var root = CreateNode(graph, "program", null);
         graph.Nodes.Add(root);
         AddDeclarationsToGraph(rootNode.Declarations, graph, root);
         graph.SaveToFile(outputFilePath);
@@ -20,7 +20,7 @@ public static class AstVisualizer
     private static string GenerateUniqueId()
     {
         var uniqueGuid = Guid.NewGuid();
-        return uniqueGuid.ToString("N"); 
+        return uniqueGuid.ToString("N");
     }
 
     private static DotNode CreateNode(DotGraph graph, DotLabel label, DotNodeShape? shape)
@@ -49,6 +49,7 @@ public static class AstVisualizer
         graph.Nodes.Add(node);
         return node;
     }
+
     private static void AddDeclarationsToGraph(INodeList<IDeclaration> declarations, DotGraph graph, DotNode parentNode)
     {
         foreach (var declaration in declarations)
@@ -57,14 +58,17 @@ public static class AstVisualizer
             {
                 case RoutineDeclaration routineDeclaration:
                 {
-                    var routineType = routineDeclaration.ReturnType is null ? "" : routineDeclaration.ReturnType.GetTypeName();
-                    var node = CreateNode(graph,$"{routineDeclaration.RoutineName} : {routineType}", null);
+                    var routineType = routineDeclaration.ReturnType is null
+                        ? ""
+                        : routineDeclaration.ReturnType.GetTypeName();
+                    var node = CreateNode(graph, $"{routineDeclaration.RoutineName} : {routineType}", null);
                     graph.Edges.Add(parentNode.Id, node.Id);
                     if (routineDeclaration.Parameters is NonEmptyNodeList<Parameter>)
                     {
                         AddParametersToGraph(routineDeclaration.Parameters, graph, node);
                     }
-                    AddBodyToGraph("body",routineDeclaration.Body, graph, node);
+
+                    AddBodyToGraph("body", routineDeclaration.Body, graph, node);
                     break;
                 }
                 case VariableDeclaration variableDeclaration:
@@ -74,7 +78,8 @@ public static class AstVisualizer
                 }
                 case TypeDeclaration typeDeclaration:
                 {
-                    var node = CreateNode(graph, $"{typeDeclaration.Name} : {typeDeclaration.Type.GetTypeName()}", DotNodeShape.Cylinder);
+                    var node = CreateNode(graph, $"{typeDeclaration.Name} : {typeDeclaration.Type.GetTypeName()}",
+                        DotNodeShape.Cylinder);
                     graph.Edges.Add(parentNode.Id, node.Id);
                     AddTypeToGraph(typeDeclaration.Type, graph, node);
                     break;
@@ -101,6 +106,7 @@ public static class AstVisualizer
                 {
                     AddExpressionToGraph(arrayType.SizeExpression, graph, node);
                 }
+
                 AddIdentifierToGraph(arrayType.UnderlyingType.GetTypeName(), graph, node);
                 break;
         }
@@ -109,28 +115,32 @@ public static class AstVisualizer
     private static void AddVariableToGraph(VariableDeclaration variableDeclaration, DotGraph graph, DotNode parentNode)
     {
         var varType = variableDeclaration.Type is null ? " " : variableDeclaration.Type.GetTypeName();
-        var variable = CreateNode(graph,$"{variableDeclaration.Name} : {varType}", null);
+        var variable = CreateNode(graph, $"{variableDeclaration.Name} : {varType}", null);
         graph.Edges.Add(parentNode.Id, variable.Id);
         if (variableDeclaration.Type is ArrayType or RecordType)
         {
             AddTypeToGraph(variableDeclaration.Type, graph, variable);
         }
+
         if (variableDeclaration.Expresion != null)
             AddExpressionToGraph(variableDeclaration.Expresion, graph, variable);
     }
 
     private static void AddParametersToGraph(IEnumerable<Parameter> parameters, DotGraph graph, DotNode parentNode)
     {
-        var node = CreateNode(graph,"params", DotNodeShape.Box);
+        var node = CreateNode(graph, "params", DotNodeShape.Box);
         graph.Edges.Add(parentNode.Id, node.Id);
         foreach (var parameter in parameters)
         {
-            AddVariableToGraph(new VariableDeclaration(parameter.Name, parameter.Type, null, parameter.LexLocation), graph, node);
+            AddVariableToGraph(new VariableDeclaration(parameter.Name, parameter.Type, null, parameter.LexLocation),
+                graph, node);
         }
     }
-    private static void AddBodyToGraph(string bodyLabel, IEnumerable<IBodyElement> body, DotGraph graph, DotNode parentNode)
+
+    private static void AddBodyToGraph(string bodyLabel, IEnumerable<IBodyElement> body, DotGraph graph,
+        DotNode parentNode)
     {
-        var node = CreateNode(graph,bodyLabel, DotNodeShape.Box);
+        var node = CreateNode(graph, bodyLabel, DotNodeShape.Box);
         graph.Edges.Add(parentNode.Id, node.Id);
         foreach (var bodyEl in body)
         {
@@ -143,13 +153,13 @@ public static class AstVisualizer
                 }
                 case TypeDeclaration typeDeclaration:
                 {
-                    var type = CreateNode(graph,typeDeclaration.Name, null);
+                    var type = CreateNode(graph, typeDeclaration.Name, null);
                     graph.Edges.Add(node.Id, type.Id);
                     break;
                 }
                 case Return returnStatement:
                 {
-                    var returnNode = CreateNode(graph,"return", DotNodeShape.Box);
+                    var returnNode = CreateNode(graph, "return", DotNodeShape.Box);
                     graph.Edges.Add(node.Id, returnNode.Id);
                     if (returnStatement.ReturnValue != null)
                         AddExpressionToGraph(returnStatement.ReturnValue, graph, returnNode);
@@ -157,17 +167,17 @@ public static class AstVisualizer
                 }
                 case IfStatement ifStatement:
                 {
-                    var ifNode = CreateNode(graph,"if", DotNodeShape.Triangle);
+                    var ifNode = CreateNode(graph, "if", DotNodeShape.Triangle);
                     graph.Edges.Add(node.Id, ifNode.Id);
                     AddExpressionToGraph(ifStatement.Condition, graph, ifNode);
                     AddBodyToGraph("then", ifStatement.ThenBody, graph, ifNode);
                     if (ifStatement.ElseBody != null)
-                        AddBodyToGraph("else",ifStatement.ElseBody, graph, ifNode);
+                        AddBodyToGraph("else", ifStatement.ElseBody, graph, ifNode);
                     break;
                 }
                 case WhileLoop whileLoop:
                 {
-                    var whileNode = CreateNode(graph,"while", DotNodeShape.Hexagon);
+                    var whileNode = CreateNode(graph, "while", DotNodeShape.Hexagon);
                     graph.Edges.Add(node.Id, whileNode.Id);
                     AddExpressionToGraph(whileLoop.Condition, graph, whileNode);
                     AddBodyToGraph("body", whileLoop.Body, graph, whileNode);
@@ -175,7 +185,7 @@ public static class AstVisualizer
                 }
                 case Assignment assignment:
                 {
-                    var assignmentNode = CreateNode(graph,"=", null);
+                    var assignmentNode = CreateNode(graph, "=", null);
                     graph.Edges.Add(node.Id, assignmentNode.Id);
                     AddModifiablePrimaryToGraph(assignment.Target, graph, assignmentNode);
                     AddExpressionToGraph(assignment.Expression, graph, assignmentNode);
@@ -183,7 +193,7 @@ public static class AstVisualizer
                 }
                 case ForLoop forLoop:
                 {
-                    var forNode = CreateNode(graph,"for", DotNodeShape.Hexagon);
+                    var forNode = CreateNode(graph, "for", DotNodeShape.Hexagon);
                     graph.Edges.Add(node.Id, forNode.Id);
                     AddIdentifierToGraph(forLoop.IteratorName, graph, forNode);
                     AddRangeToGraph(forLoop.Range, graph, forNode);
@@ -218,15 +228,21 @@ public static class AstVisualizer
         }
         else
         {
-            return AddRelationOperationToGraph(exp.First, exp.Operations, graph, parentNode);
-
+            return AddRelationOperationToGraph(exp.First, (NonEmptyNodeList<RelationOperation>)exp.Operations, graph,
+                parentNode);
         }
     }
+
     private static DotNode AddRelationToGraph(Relation rel, DotGraph graph, DotNode parentNode)
     {
-        return rel.Operations is EmptyNodeList<SimpleOperation> ? AddSimpleToGraph(rel.First, graph, parentNode) : AddSimpleOperationToGraph(rel.First, rel.Operations, graph, parentNode);
+        return rel.Operations is EmptyNodeList<SimpleOperation>
+            ? AddSimpleToGraph(rel.First, graph, parentNode)
+            : AddSimpleOperationToGraph(rel.First, (NonEmptyNodeList<SimpleOperation>)rel.Operations, graph,
+                parentNode);
     }
-    private static DotNode AddSimpleOperationToGraph(Simple first, IEnumerable<SimpleOperation> operations, DotGraph graph, DotNode parentNode)
+
+    private static DotNode AddSimpleOperationToGraph(Simple first, NonEmptyNodeList<SimpleOperation> operations,
+        DotGraph graph, DotNode parentNode)
     {
         DotNode node = null;
         foreach (var op in operations)
@@ -237,14 +253,20 @@ public static class AstVisualizer
             first = op.Simple;
             parentNode = node;
         }
+
         return AddSimpleToGraph(first, graph, node);
     }
-    
+
     private static DotNode AddSimpleToGraph(Simple simple, DotGraph graph, DotNode parentNode)
     {
-        return simple.Operations is EmptyNodeList<SummandOperation> ? AddSummandToGraph(simple.First, graph, parentNode) : AddSummandOperationToGraph(simple.First, simple.Operations, graph, parentNode);
+        return simple.Operations is EmptyNodeList<SummandOperation>
+            ? AddSummandToGraph(simple.First, graph, parentNode)
+            : AddSummandOperationToGraph(simple.First, (NonEmptyNodeList<SummandOperation>)simple.Operations, graph,
+                parentNode);
     }
-    private static DotNode AddSummandOperationToGraph(Summand first, IEnumerable<SummandOperation> operations, DotGraph graph, DotNode parentNode)
+
+    private static DotNode AddSummandOperationToGraph(Summand first, NonEmptyNodeList<SummandOperation> operations,
+        DotGraph graph, DotNode parentNode)
     {
         DotNode node = null;
         foreach (var op in operations)
@@ -255,15 +277,20 @@ public static class AstVisualizer
             first = op.Summand;
             parentNode = node;
         }
+
         return AddSummandToGraph(first, graph, node);
-           
-    }
-    private static DotNode AddModifiablePrimaryToGraph(ModifiablePrimary mod, DotGraph graph, DotNode parentNode)
-    {
-        return mod.Operations is EmptyNodeList<IModifiablePrimaryOperation> ? AddIdentifierToGraph(mod.Identifier, graph, parentNode) : AddModifiablePrimaryOperationToGraph(mod.Operations, graph, AddIdentifierToGraph(mod.Identifier, graph, parentNode));
     }
 
-    private static DotNode AddModifiablePrimaryOperationToGraph(IEnumerable<IModifiablePrimaryOperation> modOperations, DotGraph graph, DotNode parentNode)
+    private static DotNode AddModifiablePrimaryToGraph(ModifiablePrimary mod, DotGraph graph, DotNode parentNode)
+    {
+        return mod.Operations is EmptyNodeList<IModifiablePrimaryOperation>
+            ? AddIdentifierToGraph(mod.Identifier, graph, parentNode)
+            : AddModifiablePrimaryOperationToGraph((NonEmptyNodeList<IModifiablePrimaryOperation>)mod.Operations, graph,
+                AddIdentifierToGraph(mod.Identifier, graph, parentNode));
+    }
+
+    private static DotNode AddModifiablePrimaryOperationToGraph(
+        NonEmptyNodeList<IModifiablePrimaryOperation> modOperations, DotGraph graph, DotNode parentNode)
     {
         var parent = parentNode;
         foreach (var operation in modOperations)
@@ -287,8 +314,6 @@ public static class AstVisualizer
         }
 
         return parent;
-
-
     }
 
     private static DotNode AddIntegerPrimaryToGraph(IntegerPrimary i, DotGraph graph, DotNode parentNode)
@@ -297,16 +322,17 @@ public static class AstVisualizer
         graph.Edges.Add(parentNode.Id, node.Id);
         return node;
     }
-    
+
     private static DotNode AddBoolPrimaryToGraph(BoolPrimary boolPrimary, DotGraph graph, DotNode parentNode)
     {
         var node = CreateNode(graph, boolPrimary.Value.ToString(), null);
         graph.Edges.Add(parentNode.Id, node.Id);
         return node;
     }
-    
 
-    private static DotNode AddRelationOperationToGraph(Relation rel, IEnumerable<RelationOperation> operations, DotGraph graph, DotNode parentNode)
+
+    private static DotNode AddRelationOperationToGraph(Relation rel, NonEmptyNodeList<RelationOperation> operations,
+        DotGraph graph, DotNode parentNode)
     {
         DotNode node = null;
         foreach (var op in operations)
@@ -317,45 +343,51 @@ public static class AstVisualizer
             rel = op.Relation;
             parentNode = node;
         }
-        return AddRelationToGraph(rel, graph, node);
 
+        return AddRelationToGraph(rel, graph, node);
     }
+
     private static DotNode AddIdentifierToGraph(string identifier, DotGraph graph, DotNode parentNode)
     {
         var node = CreateNode(graph, identifier, null);
         graph.Edges.Add(parentNode.Id, node.Id);
         return node;
     }
-    
+
     private static DotNode AddSummandToGraph(Summand sum, DotGraph graph, DotNode parentNode)
     {
-        
         if (sum.Operations is EmptyNodeList<FactorOperation>)
         {
-             return SwitchPrimary(sum, graph, parentNode);
+            return AddFactorToGraph(sum.First, graph, parentNode);
         }
         else
         {
-            return AddFactorOperationToGraph((IPrimary)sum.First, sum.Operations, graph, parentNode);
+            return AddFactorOperationToGraph(sum.First, (NonEmptyNodeList<FactorOperation>)sum.Operations, graph,
+                parentNode);
         }
-      
-     
-        
     }
 
-    private static DotNode? SwitchPrimary(Summand sum,DotGraph graph, DotNode parentNode)
+    private static DotNode? AddFactorToGraph(IFactor factor, DotGraph graph, DotNode parentNode)
     {
-        var f = sum.First;
-        return f switch
+        try
         {
-            ModifiablePrimary modifiablePrimary => AddModifiablePrimaryToGraph(modifiablePrimary, graph, parentNode),
-            IntegerPrimary integerPrimary => AddIntegerPrimaryToGraph(integerPrimary, graph, parentNode),
-            BoolPrimary boolPrimary => AddBoolPrimaryToGraph(boolPrimary, graph, parentNode),
-            RealPrimary realPrimary => AddRealPrimaryToGraph(realPrimary, graph, parentNode),
-            ExpressionFactor expressionFactor => AddExpressionToGraph(expressionFactor.Expression, graph, parentNode),
-            RoutineCall routineCall => AddRoutineCallToGraph(routineCall, graph, parentNode),
-            _ => null
-        };
+            return factor switch
+            {
+                ModifiablePrimary modifiablePrimary =>
+                    AddModifiablePrimaryToGraph(modifiablePrimary, graph, parentNode),
+                IntegerPrimary integerPrimary => AddIntegerPrimaryToGraph(integerPrimary, graph, parentNode),
+                BoolPrimary boolPrimary => AddBoolPrimaryToGraph(boolPrimary, graph, parentNode),
+                RealPrimary realPrimary => AddRealPrimaryToGraph(realPrimary, graph, parentNode),
+                ExpressionFactor expressionFactor => AddExpressionToGraph(expressionFactor.Expression, graph,
+                    parentNode),
+                RoutineCall routineCall => AddRoutineCallToGraph(routineCall, graph, parentNode),
+            };
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Oops, we forgot process smth :(");
+            throw;
+        }
     }
 
     private static DotNode AddRealPrimaryToGraph(RealPrimary realPrimary, DotGraph graph, DotNode parentNode)
@@ -374,33 +406,23 @@ public static class AstVisualizer
         {
             AddExpressionToGraph(arg, graph, node);
         }
+
         return node;
     }
 
-    private static DotNode AddFactorOperationToGraph(IPrimary primary, IEnumerable<FactorOperation> operations, DotGraph graph, DotNode parentNode)
+    private static DotNode AddFactorOperationToGraph(IFactor factor, NonEmptyNodeList<FactorOperation> operations,
+        DotGraph graph, DotNode parentNode)
     {
         DotNode node = null;
         foreach (var op in operations)
         {
             node = CreateNode(graph, op.GetType(), null);
             graph.Edges.Add(parentNode.Id, node.Id);
-            AddPrimaryToGraph(primary, graph, node);
-            primary = (IPrimary)op.Factor;
+            AddFactorToGraph(factor, graph, node);
+            factor = op.Factor;
             parentNode = node;
         }
-        return AddPrimaryToGraph(primary, graph, node);
 
-        
+        return AddFactorToGraph(factor, graph, node);
     }
-
-    private static DotNode? AddPrimaryToGraph(IPrimary primary, DotGraph graph, DotNode parentNode)
-    {
-        return primary switch
-        {
-            ModifiablePrimary mod => AddModifiablePrimaryToGraph(mod, graph, parentNode),
-            IntegerPrimary i => AddIntegerPrimaryToGraph(i, graph, parentNode),
-            _ => null
-        };
-    }
-    
 }
