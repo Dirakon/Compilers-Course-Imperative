@@ -222,23 +222,18 @@ public static class AstVisualizer
 
     private static DotNode AddExpressionToGraph(Expression exp, DotGraph graph, DotNode parentNode)
     {
-        if (exp.Operations is EmptyNodeList<RelationOperation>)
-        {
-            return AddRelationToGraph(exp.First, graph, parentNode);
-        }
-        else
-        {
-            return AddRelationOperationToGraph(exp.First, (NonEmptyNodeList<RelationOperation>)exp.Operations, graph,
-                parentNode);
-        }
+        return exp.Operations is NonEmptyNodeList<RelationOperation> nonEmptyNodeList
+            ? AddRelationOperationToGraph(exp.First, nonEmptyNodeList, graph,
+                parentNode)
+            : AddRelationToGraph(exp.First, graph, parentNode);
     }
 
     private static DotNode AddRelationToGraph(Relation rel, DotGraph graph, DotNode parentNode)
     {
-        return rel.Operations is EmptyNodeList<SimpleOperation>
-            ? AddSimpleToGraph(rel.First, graph, parentNode)
-            : AddSimpleOperationToGraph(rel.First, (NonEmptyNodeList<SimpleOperation>)rel.Operations, graph,
-                parentNode);
+        return rel.Operations is NonEmptyNodeList<SimpleOperation> nonEmptyNodeList
+            ? AddSimpleOperationToGraph(rel.First, nonEmptyNodeList, graph,
+                parentNode)
+            : AddSimpleToGraph(rel.First, graph, parentNode);
     }
 
     private static DotNode AddSimpleOperationToGraph(Simple first, NonEmptyNodeList<SimpleOperation> operations,
@@ -259,10 +254,9 @@ public static class AstVisualizer
 
     private static DotNode AddSimpleToGraph(Simple simple, DotGraph graph, DotNode parentNode)
     {
-        return simple.Operations is EmptyNodeList<SummandOperation>
-            ? AddSummandToGraph(simple.First, graph, parentNode)
-            : AddSummandOperationToGraph(simple.First, (NonEmptyNodeList<SummandOperation>)simple.Operations, graph,
-                parentNode);
+        return simple.Operations is NonEmptyNodeList<SummandOperation> nonEmptyNodeList
+            ? AddSummandOperationToGraph(simple.First, nonEmptyNodeList, graph, parentNode)
+            : AddSummandToGraph(simple.First, graph, parentNode);
     }
 
     private static DotNode AddSummandOperationToGraph(Summand first, NonEmptyNodeList<SummandOperation> operations,
@@ -283,10 +277,10 @@ public static class AstVisualizer
 
     private static DotNode AddModifiablePrimaryToGraph(ModifiablePrimary mod, DotGraph graph, DotNode parentNode)
     {
-        return mod.Operations is EmptyNodeList<IModifiablePrimaryOperation>
-            ? AddIdentifierToGraph(mod.Identifier, graph, parentNode)
-            : AddModifiablePrimaryOperationToGraph((NonEmptyNodeList<IModifiablePrimaryOperation>)mod.Operations, graph,
-                AddIdentifierToGraph(mod.Identifier, graph, parentNode));
+        return mod.Operations is NonEmptyNodeList<IModifiablePrimaryOperation> nonEmptyNodeList
+            ? AddModifiablePrimaryOperationToGraph(nonEmptyNodeList, graph,
+                AddIdentifierToGraph(mod.Identifier, graph, parentNode))
+            : AddIdentifierToGraph(mod.Identifier, graph, parentNode);
     }
 
     private static DotNode AddModifiablePrimaryOperationToGraph(
@@ -356,18 +350,13 @@ public static class AstVisualizer
 
     private static DotNode AddSummandToGraph(Summand sum, DotGraph graph, DotNode parentNode)
     {
-        if (sum.Operations is EmptyNodeList<FactorOperation>)
-        {
-            return AddFactorToGraph(sum.First, graph, parentNode);
-        }
-        else
-        {
-            return AddFactorOperationToGraph(sum.First, (NonEmptyNodeList<FactorOperation>)sum.Operations, graph,
-                parentNode);
-        }
+        return sum.Operations is NonEmptyNodeList<FactorOperation> nonEmptyNodeList
+            ? AddFactorOperationToGraph(sum.First, nonEmptyNodeList, graph,
+                parentNode)
+            : AddFactorToGraph(sum.First, graph, parentNode);
     }
 
-    private static DotNode? AddFactorToGraph(IFactor factor, DotGraph graph, DotNode parentNode)
+    private static DotNode AddFactorToGraph(IFactor factor, DotGraph graph, DotNode parentNode)
     {
         try
         {
