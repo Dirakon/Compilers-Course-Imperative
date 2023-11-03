@@ -21,6 +21,7 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                 Console.WriteLine(er.Message);
             }
         }
+
         TokenVisualiser.VisualiseTokensIntoSourceCode(
             ImperativeScanner.GetAllTokens(File.ReadAllText(o.InputFile)),
             o.TokenVisualizationOutputFile);
@@ -36,7 +37,7 @@ public class CommandLineOptions
 
     [Option('l', "logs", Required = false, HelpText = "Path to file where to output logs.")]
     public string LogsOutputFile { get; init; } = "logs.txt";
-    
+
     [Option('a', "ast", Required = false, HelpText = "Path to file where to output AST.")]
     public string AstOutputFile { get; init; } = "ast.dot";
 }

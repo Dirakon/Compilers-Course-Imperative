@@ -1,4 +1,5 @@
 using System.Collections;
+
 namespace Compiler;
 
 public interface INode
@@ -21,6 +22,7 @@ public record NonEmptyNodeList<T>(T ThisNode, INodeList<T> OtherNodes, CustomLex
             yield return otherNode;
         }
     }
+
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
@@ -30,7 +32,7 @@ public record NonEmptyNodeList<T>(T ThisNode, INodeList<T> OtherNodes, CustomLex
 public record EmptyNodeList<T> : INodeList<T> where T : INode
 {
     public CustomLexLocation LexLocation { get; } = CustomLexLocation.Empty;
-    
+
     public IEnumerator<T> GetEnumerator()
     {
         yield break;
@@ -139,7 +141,8 @@ public record RoutineCall
 public record WhileLoop
     (Expression Condition, INodeList<IBodyElement> Body, CustomLexLocation LexLocation) : IStatement;
 
-public record ForLoop(string IteratorName, Range Range, INodeList<IBodyElement> Body, CustomLexLocation LexLocation) : IStatement;
+public record ForLoop(string IteratorName, Range Range, INodeList<IBodyElement> Body,
+    CustomLexLocation LexLocation) : IStatement;
 
 public record Return(Expression? ReturnValue, CustomLexLocation LexLocation) : IStatement;
 
@@ -147,8 +150,6 @@ public record Range(bool IsReversed, Expression Start, Expression End, CustomLex
 
 public record IfStatement(Expression Condition, INodeList<IBodyElement> ThenBody, INodeList<IBodyElement>? ElseBody,
     CustomLexLocation LexLocation) : IStatement;
-
-
 
 public enum RelationOperationType
 {
@@ -166,8 +167,7 @@ public record RelationOperation(RelationOperationType Type, Relation Relation, C
     }
 }
 
-
-public record Expression(Relation First, INodeList<RelationOperation> Operations, CustomLexLocation LexLocation) 
+public record Expression(Relation First, INodeList<RelationOperation> Operations, CustomLexLocation LexLocation)
     : INode;
 
 public enum SimpleOperationType
@@ -224,18 +224,16 @@ public record FactorOperation(FactorOperationType Type, IFactor Factor, CustomLe
     }
 }
 
-public record Summand(IFactor First,  INodeList<FactorOperation> Operations, CustomLexLocation LexLocation) : INode;
+public record Summand(IFactor First, INodeList<FactorOperation> Operations, CustomLexLocation LexLocation) : INode;
 
 public interface IFactor : INode
 {
-    
 }
 
 public record ExpressionFactor(Expression Expression, CustomLexLocation LexLocation) : IFactor;
 
 public interface IPrimary : IFactor
 {
-    
 }
 
 public record ModifiablePrimary(string Identifier, INodeList<IModifiablePrimaryOperation> Operations,
@@ -247,6 +245,7 @@ public interface IModifiablePrimaryOperation : INode
 }
 
 public record MemberCall(string MemberName, CustomLexLocation LexLocation) : IModifiablePrimaryOperation;
+
 public record ArrayCall(Expression IndexExpression, CustomLexLocation LexLocation) : IModifiablePrimaryOperation;
 
 public record IntegerPrimary(int Literal, CustomLexLocation LexLocation) : IPrimary;

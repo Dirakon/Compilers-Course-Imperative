@@ -76,8 +76,8 @@ public class CustomLexLocation : IMerge<CustomLexLocation>
 
     public override string ToString()
     {
-        return StartLine == EndLine 
-            ? $"line {StartLine}, columns {StartColumn}-{EndColumn}" 
+        return StartLine == EndLine
+            ? $"line {StartLine}, columns {StartColumn}-{EndColumn}"
             : $"lines {StartLine}-{EndLine}";
     }
 }

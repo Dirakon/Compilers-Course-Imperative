@@ -5,7 +5,7 @@ namespace Compiler;
 internal static class TokenVisualiser
 {
     public static void VisualiseTokensIntoSourceCode(
-        IEnumerable<(Token token, CustomLexLocation lexLocation)> tokensData, 
+        IEnumerable<(Token token, CustomLexLocation lexLocation)> tokensData,
         string to)
     {
         File.Delete(to);
