@@ -3,8 +3,8 @@
 // (see accompanying GPPGcopyright.rtf)
 
 // GPPG version 1.5.2
-// DateTime: 10/15/2023 11:15:39 PM
-// Input file <Imperative/Imperative.Language.grammar.y - 10/15/2023 11:15:37 PM>
+// DateTime: 02.11.2023 20:28:24
+// Input file <Imperative\Imperative.Language.grammar.y - 02.11.2023 20:28:21>
 
 // options: no-lines gplex
 
@@ -506,7 +506,7 @@ internal partial class ImperativeParser: ShiftReduceParser<INode, CustomLexLocat
 {CurrentSemanticValue = new ArrayType((Expression)ValueStack[ValueStack.Depth-3], (IType) ValueStack[ValueStack.Depth-1], LocationStack[LocationStack.Depth-5].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
         break;
       case 34: // Type -> ARRAY, SQUARE_OPEN, SQUARE_CLOSE, Type
-{CurrentSemanticValue = new ArrayType(null, (IType) ValueStack[ValueStack.Depth-3], LocationStack[LocationStack.Depth-4].Merge(LocationStack[LocationStack.Depth-3])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+{CurrentSemanticValue = new ArrayType(null, (IType) ValueStack[ValueStack.Depth-1], LocationStack[LocationStack.Depth-4].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
         break;
       case 35: // Type -> RECORD, CURLY_OPEN, VariableDeclarationList, CURLY_CLOSE, END
 {CurrentSemanticValue = new RecordType(

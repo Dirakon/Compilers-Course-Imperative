@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace Compiler;
 
 public interface INode
@@ -5,16 +7,41 @@ public interface INode
     public CustomLexLocation LexLocation { get; }
 }
 
-public interface INodeList<T> : INode where T : INode
+public interface INodeList<T> : IEnumerable<T>, INode where T : INode
 {
 }
 
 public record NonEmptyNodeList<T>(T ThisNode, INodeList<T> OtherNodes, CustomLexLocation LexLocation) : INodeList<T>
-    where T : INode;
+    where T : INode
+{
+    public IEnumerator<T> GetEnumerator()
+    {
+        yield return ThisNode;
+        foreach (var otherNode in OtherNodes)
+        {
+            yield return otherNode;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+}
 
 public record EmptyNodeList<T> : INodeList<T> where T : INode
 {
     public CustomLexLocation LexLocation { get; } = CustomLexLocation.Empty;
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        yield break;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 }
 
 public record Program(INodeList<IDeclaration> Declarations) : INode
@@ -47,23 +74,60 @@ public record TypeDeclaration(string Name, IType Type, CustomLexLocation LexLoca
 
 public interface IType : INode
 {
+    public string GetTypeName();
 }
 
-public record IntType(CustomLexLocation LexLocation) : IType;
+public record IntType(CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return "integer";
+    }
+}
 
-public record RealType(CustomLexLocation LexLocation) : IType;
+public record RealType(CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return "real";
+    }
+}
 
-public record BoolType(CustomLexLocation LexLocation) : IType;
+public record BoolType(CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return "bool";
+    }
+}
 
 /// <summary>
 ///     type myType = int;
 ///     var myVar:myType = ...
 /// </summary>
-public record UserDefinedType(string TypeName, CustomLexLocation LexLocation) : IType;
+public record UserDefinedType(string TypeName, CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return TypeName;
+    }
+}
 
-public record ArrayType(Expression? SizeExpression, IType UnderlyingType, CustomLexLocation LexLocation) : IType;
+public record ArrayType(Expression? SizeExpression, IType UnderlyingType, CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return "array";
+    }
+}
 
-public record RecordType(INodeList<VariableDeclaration> Variables, CustomLexLocation LexLocation) : IType;
+public record RecordType(INodeList<VariableDeclaration> Variables, CustomLexLocation LexLocation) : IType
+{
+    public string GetTypeName()
+    {
+        return "record";
+    }
+}
 
 public interface IStatement : IBodyElement
 {
@@ -77,7 +141,8 @@ public record RoutineCall
 public record WhileLoop
     (Expression Condition, INodeList<IBodyElement> Body, CustomLexLocation LexLocation) : IStatement;
 
-public record ForLoop(string IteratorName, Range Range, INodeList<IBodyElement> Body, CustomLexLocation LexLocation) : IStatement;
+public record ForLoop(string IteratorName, Range Range, INodeList<IBodyElement> Body,
+    CustomLexLocation LexLocation) : IStatement;
 
 public record Return(Expression? ReturnValue, CustomLexLocation LexLocation) : IStatement;
 
@@ -86,8 +151,6 @@ public record Range(bool IsReversed, Expression Start, Expression End, CustomLex
 public record IfStatement(Expression Condition, INodeList<IBodyElement> ThenBody, INodeList<IBodyElement>? ElseBody,
     CustomLexLocation LexLocation) : IStatement;
 
-
-
 public enum RelationOperationType
 {
     And,
@@ -95,11 +158,16 @@ public enum RelationOperationType
     Xor
 }
 
-public record RelationOperation(RelationOperationType Type, Relation Relation, CustomLexLocation LexLocation) 
-    : INode;
+public record RelationOperation(RelationOperationType Type, Relation Relation, CustomLexLocation LexLocation)
+    : INode
+{
+    public new string GetType()
+    {
+        return Type.ToString();
+    }
+}
 
-
-public record Expression(Relation First, INodeList<RelationOperation> Operations, CustomLexLocation LexLocation) 
+public record Expression(Relation First, INodeList<RelationOperation> Operations, CustomLexLocation LexLocation)
     : INode;
 
 public enum SimpleOperationType
@@ -112,8 +180,14 @@ public enum SimpleOperationType
     NotEqual
 }
 
-public record SimpleOperation(SimpleOperationType Type,  Simple Simple, CustomLexLocation LexLocation) 
-    : INode;
+public record SimpleOperation(SimpleOperationType Type, Simple Simple, CustomLexLocation LexLocation)
+    : INode
+{
+    public new string GetType()
+    {
+        return Type.ToString();
+    }
+}
 
 public record Relation(Simple First, INodeList<SimpleOperation> Operations, CustomLexLocation LexLocation) : INode;
 
@@ -122,8 +196,15 @@ public enum SummandOperationType
     Plus,
     Minus
 }
-public record SummandOperation(SummandOperationType Type,  Summand Summand, CustomLexLocation LexLocation) 
-    : INode;
+
+public record SummandOperation(SummandOperationType Type, Summand Summand, CustomLexLocation LexLocation)
+    : INode
+{
+    public new string GetType()
+    {
+        return Type.ToString();
+    }
+}
 
 public record Simple(Summand First, INodeList<SummandOperation> Operations, CustomLexLocation LexLocation) : INode;
 
@@ -134,21 +215,25 @@ public enum FactorOperationType
     ModularDivision
 }
 
-public record FactorOperation(FactorOperationType Type,  IFactor Factor, CustomLexLocation LexLocation) 
-    : INode;
+public record FactorOperation(FactorOperationType Type, IFactor Factor, CustomLexLocation LexLocation)
+    : INode
+{
+    public new string GetType()
+    {
+        return Type.ToString();
+    }
+}
 
-public record Summand(IFactor First,  INodeList<FactorOperation> Operations, CustomLexLocation LexLocation) : INode;
+public record Summand(IFactor First, INodeList<FactorOperation> Operations, CustomLexLocation LexLocation) : INode;
 
 public interface IFactor : INode
 {
-    
 }
 
 public record ExpressionFactor(Expression Expression, CustomLexLocation LexLocation) : IFactor;
 
 public interface IPrimary : IFactor
 {
-    
 }
 
 public record ModifiablePrimary(string Identifier, INodeList<IModifiablePrimaryOperation> Operations,
@@ -160,6 +245,7 @@ public interface IModifiablePrimaryOperation : INode
 }
 
 public record MemberCall(string MemberName, CustomLexLocation LexLocation) : IModifiablePrimaryOperation;
+
 public record ArrayCall(Expression IndexExpression, CustomLexLocation LexLocation) : IModifiablePrimaryOperation;
 
 public record IntegerPrimary(int Literal, CustomLexLocation LexLocation) : IPrimary;
