@@ -46,3 +46,4 @@ msbuild.wrn
 */logs.txt
 */visualizedTokens.txt
 */output.txt
+*/ast.dot
