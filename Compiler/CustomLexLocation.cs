@@ -4,7 +4,7 @@ namespace Compiler;
 
 public class CustomLexLocation : IMerge<CustomLexLocation>
 {
-    public static readonly CustomLexLocation Empty = null!;
+    public static readonly CustomLexLocation Empty = new CustomLexLocation(-1,-1,1,-1, "");
 
     /// <summary>
     ///     Default no-arg constructor.
@@ -76,6 +76,10 @@ public class CustomLexLocation : IMerge<CustomLexLocation>
 
     public override string ToString()
     {
+        if (this == Empty)
+        {
+            return "-";
+        }
         return StartLine == EndLine
             ? $"line {StartLine}, columns {StartColumn}-{EndColumn}"
             : $"lines {StartLine}-{EndLine}";
