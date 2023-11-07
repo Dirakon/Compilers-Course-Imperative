@@ -15,14 +15,20 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
             {
                 parser.Parse();
                 var rootNode = parser.RootNode;
-                var typeCheckingErrors = TypeChecker.TypeCheck(rootNode);
-                if (typeCheckingErrors is not { } someErrors)
+                var typeCheckingErrors = rootNode.TypeCheck();
+                if (typeCheckingErrors is not OperationFailure(var someErrors))
                 {
                     Console.WriteLine("No typechecking errors found!");
                 }
                 else
                 {
-                    foreach (var error in someErrors)
+                    var somewhatOrderedErrors = someErrors
+                            .OrderBy(error => error
+                                .Locations
+                                .DefaultIfEmpty()
+                                .MinBy(loc => loc?.StartLine)
+                                ?.StartLine);
+                    foreach (var error in somewhatOrderedErrors)
                     {
                         var locationString = string.Join(", ", error.Locations.Select(location => $"[{location}]"));   
                         Console.WriteLine($"At {locationString}:");
