@@ -67,7 +67,7 @@ public interface ISimpleDeclaration : IDeclaration, IBodyElement
 {
 }
 
-public record VariableDeclaration(string Name, IType? Type, Expression? Expresion, CustomLexLocation LexLocation)
+public record VariableDeclaration(string Name, IType? Type, Expression? Expression, CustomLexLocation LexLocation)
     : ISimpleDeclaration;
 
 public record TypeDeclaration(string Name, IType Type, CustomLexLocation LexLocation) : ISimpleDeclaration;
@@ -189,7 +189,7 @@ public record SimpleOperation(SimpleOperationType Type, Simple Simple, CustomLex
     }
 }
 
-public record Relation(Simple First, INodeList<SimpleOperation> Operations, CustomLexLocation LexLocation) : INode;
+public record Relation(Simple First, SimpleOperation? Operation, CustomLexLocation LexLocation) : INode;
 
 public enum SummandOperationType
 {
@@ -246,7 +246,7 @@ public interface IModifiablePrimaryOperation : INode
 
 public record MemberCall(string MemberName, CustomLexLocation LexLocation) : IModifiablePrimaryOperation;
 
-public record ArrayCall(Expression IndexExpression, CustomLexLocation LexLocation) : IModifiablePrimaryOperation;
+public record ArrayIndexing(Expression IndexExpression, CustomLexLocation LexLocation) : IModifiablePrimaryOperation;
 
 public record IntegerPrimary(int Literal, CustomLexLocation LexLocation) : IPrimary;
 

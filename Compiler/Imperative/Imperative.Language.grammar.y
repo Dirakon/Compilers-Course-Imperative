@@ -262,60 +262,50 @@ RelationOperationsList
 ;
 
 Relation
-: Simple SimpleOperationList {$$ = new Relation((Simple)$1, (INodeList<SimpleOperation>)$2, @1.Merge(@2)); 
+: Simple {$$ = new Relation((Simple)$1, null, @1); 
     @$ = $$.LexLocation; }
-;
-
-SimpleOperationList
-: /* empty */ { $$ = new EmptyNodeList<SimpleOperation>(); @$ = $$.LexLocation; }
-| LESS Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+| Simple LESS Simple {$$ = new Relation((Simple)$1,
         new SimpleOperation(
             SimpleOperationType.Less,
-            (Simple)$2,
-            @1.Merge(@2)
+            (Simple)$3,
+            @2.Merge(@2)
         ),
-        (INodeList<SimpleOperation>)$3, 
-        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
-| LEQ Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+        @1.Merge(@3)); @$ = $$.LexLocation; }
+| Simple LEQ Simple {$$ = new Relation((Simple)$1,
         new SimpleOperation(
             SimpleOperationType.LessOrEqual,
-            (Simple)$2,
-            @1.Merge(@2)
+            (Simple)$3,
+            @2.Merge(@2)
         ),
-        (INodeList<SimpleOperation>)$3, 
-        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
-| GREATER Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+        @1.Merge(@3)); @$ = $$.LexLocation; }
+| Simple GREATER Simple {$$ = new Relation((Simple)$1,
         new SimpleOperation(
             SimpleOperationType.Greater,
-            (Simple)$2,
-            @1.Merge(@2)
+            (Simple)$3,
+            @2.Merge(@2)
         ),
-        (INodeList<SimpleOperation>)$3, 
-        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
-| GEQ Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+        @1.Merge(@3)); @$ = $$.LexLocation; }
+| Simple GEQ Simple {$$ = new Relation((Simple)$1,
         new SimpleOperation(
             SimpleOperationType.GreaterOrEqual,
-            (Simple)$2,
-            @1.Merge(@2)
+            (Simple)$3,
+            @2.Merge(@2)
         ),
-        (INodeList<SimpleOperation>)$3, 
-        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
-| EQUAL Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+        @1.Merge(@3)); @$ = $$.LexLocation; }
+| Simple EQUAL Simple {$$ = new Relation((Simple)$1,
         new SimpleOperation(
             SimpleOperationType.Equal,
-            (Simple)$2,
-            @1.Merge(@2)
+            (Simple)$3,
+            @2.Merge(@2)
         ),
-        (INodeList<SimpleOperation>)$3, 
-        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
-| NOT_EQUAL Simple SimpleOperationList {$$ = new NonEmptyNodeList<SimpleOperation>(
+        @1.Merge(@3)); @$ = $$.LexLocation; }
+| Simple NOT_EQUAL Simple {$$ = new Relation((Simple)$1,
         new SimpleOperation(
             SimpleOperationType.NotEqual,
-            (Simple)$2,
-            @1.Merge(@2)
+            (Simple)$3,
+            @2.Merge(@2)
         ),
-        (INodeList<SimpleOperation>)$3, 
-        @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation; }
+        @1.Merge(@3)); @$ = $$.LexLocation; }
 ;
 
 Simple
@@ -426,7 +416,7 @@ ModifiablePrimaryOperationList
         (INodeList<IModifiablePrimaryOperation>)$3, 
         @1.Merge(@2).Merge(@3)); @$ = $$.LexLocation;}
 | SQUARE_OPEN Expression SQUARE_CLOSE ModifiablePrimaryOperationList {$$ = new NonEmptyNodeList<IModifiablePrimaryOperation>(
-        new ArrayCall((Expression)$2, @1.Merge(@3)),
+        new ArrayIndexing((Expression)$2, @1.Merge(@3)),
         (INodeList<IModifiablePrimaryOperation>)$4, 
         @1.Merge(@3).Merge(@4)); @$ = $$.LexLocation;}
 ;

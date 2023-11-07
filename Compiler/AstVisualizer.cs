@@ -122,8 +122,8 @@ public static class AstVisualizer
             AddTypeToGraph(variableDeclaration.Type, graph, variable);
         }
 
-        if (variableDeclaration.Expresion != null)
-            AddExpressionToGraph(variableDeclaration.Expresion, graph, variable);
+        if (variableDeclaration.Expression != null)
+            AddExpressionToGraph(variableDeclaration.Expression, graph, variable);
     }
 
     private static void AddParametersToGraph(IEnumerable<Parameter> parameters, DotGraph graph, DotNode parentNode)
@@ -230,24 +230,19 @@ public static class AstVisualizer
 
     private static DotNode AddRelationToGraph(Relation rel, DotGraph graph, DotNode parentNode)
     {
-        return rel.Operations is NonEmptyNodeList<SimpleOperation> nonEmptyNodeList
-            ? AddSimpleOperationToGraph(rel.First, nonEmptyNodeList, graph,
-                parentNode)
-            : AddSimpleToGraph(rel.First, graph, parentNode);
+        return rel.Operation == null
+            ? AddSimpleToGraph(rel.First, graph, parentNode)
+            : AddSimpleOperationToGraph(rel.First, rel.Operation, graph,
+                parentNode);
     }
 
-    private static DotNode AddSimpleOperationToGraph(Simple first, NonEmptyNodeList<SimpleOperation> operations,
+    private static DotNode AddSimpleOperationToGraph(Simple first, SimpleOperation operation,
         DotGraph graph, DotNode parentNode)
     {
-        DotNode node = null;
-        foreach (var op in operations)
-        {
-            node = CreateNode(graph, op.GetType(), null);
-            graph.Edges.Add(parentNode.Id, node.Id);
-            AddSimpleToGraph(first, graph, node);
-            first = op.Simple;
-            parentNode = node;
-        }
+        var node = CreateNode(graph, operation.GetType(), null);
+        graph.Edges.Add(parentNode.Id, node.Id);
+        AddSimpleToGraph(first, graph, node);
+        first = operation.Simple;
 
         return AddSimpleToGraph(first, graph, node);
     }
@@ -298,7 +293,7 @@ public static class AstVisualizer
                     parent = node;
                     break;
                 }
-                case ArrayCall arrayCall:
+                case ArrayIndexing arrayCall:
                 {
                     var node = AddExpressionToGraph(arrayCall.IndexExpression, graph, parent);
                     parent = node;
