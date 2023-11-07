@@ -262,6 +262,7 @@ public static class TypeCheckingAstExtensions
         return firstInferredType switch
         {
             OperationFailure operationFailure => operationFailure,
+                // TODO: type transformation here! To bool. maybe
             SuccessfulTypeInference success => relation.Operations.ValidateOperationsGivenType(success.InferredType, scope) switch
             {
                 null => success,
