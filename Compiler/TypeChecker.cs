@@ -402,7 +402,7 @@ public static class TypeCheckingAstExtensions
                             .OrElse(type))
                         .TryExtractError()
                         .TryAdd(ifStatement.ThenBody.TypeCheck(expectedReturnValue, currentScope))
-                        .TryAdd(ifStatement.ElseBody.TypeCheck(expectedReturnValue, currentScope))),
+                        .TryAdd(ifStatement.ElseBody?.TypeCheck(expectedReturnValue, currentScope))),
                 WhileLoop whileLoop => (scope: currentScope,
                     whileLoop.Condition
                         .TryInferType(currentScope)
