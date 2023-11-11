@@ -38,7 +38,7 @@ routine SomeRoutine() is
     var someVariableAssignmentOfWhichFailsTypeConversion : boolean;
     someVariableAssignmentOfWhichFailsTypeConversion := 1.0;
     
-    var bunchOfUndeclared : UndeclaredType is 1 + undeclaredFunction() + undeclaredVariable;
+    var bunchOfUndeclared : UndeclaredType is undeclaredFunction() + undeclaredVariable;
     
     for _ in reverse true..10.0 loop
         end;

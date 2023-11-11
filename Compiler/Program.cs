@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using Compiler;
 using Compiler.Imperative;
+using Compiler.TypeChecking;
 
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
