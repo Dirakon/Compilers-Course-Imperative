@@ -1,4 +1,5 @@
 using System.Diagnostics.Contracts;
+using Compiler.Utils;
 
 namespace Compiler.TypeChecking;
 

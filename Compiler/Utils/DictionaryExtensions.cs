@@ -1,4 +1,4 @@
-namespace Compiler;
+namespace Compiler.Utils;
 
 public static class DictionaryExtensions
 {

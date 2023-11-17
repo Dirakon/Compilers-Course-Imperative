@@ -15,7 +15,7 @@ using System.Globalization;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace QUT.Gppg;
+namespace Compiler;
 
 /// <summary>
 ///     Abstract class for GPPG shift-reduce parsers.

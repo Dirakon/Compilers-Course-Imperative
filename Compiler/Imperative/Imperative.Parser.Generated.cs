@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.CodeDom.Compiler;
 using System.Globalization;
 using System.Text;
-using QUT.Gppg;
 
 namespace Compiler.Imperative
 {

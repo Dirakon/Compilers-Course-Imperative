@@ -1,6 +1,6 @@
 using Compiler.Imperative;
 
-namespace Compiler;
+namespace Compiler.Visualizers;
 
 internal static class TokenVisualiser
 {

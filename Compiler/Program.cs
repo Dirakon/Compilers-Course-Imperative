@@ -2,6 +2,7 @@
 using Compiler;
 using Compiler.Imperative;
 using Compiler.TypeChecking;
+using Compiler.Visualizers;
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
     .WithParsed(o =>
@@ -52,20 +53,23 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
             o.TokenVisualizationOutputFile);
     });
 
-public class CommandLineOptions
+namespace Compiler
 {
-    [Option('i', "input", Required = true, HelpText = "Source file to compile.")]
-    public required string InputFile { get; init; }
+    public class CommandLineOptions
+    {
+        [Option('i', "input", Required = true, HelpText = "Source file to compile.")]
+        public required string InputFile { get; init; }
 
-    [Option('t', "visualizeTokens", Required = false, HelpText = "Path to file where to output visualized tokens.")]
-    public string TokenVisualizationOutputFile { get; init; } = "visualizedTokens.txt";
+        [Option('t', "visualizeTokens", Required = false, HelpText = "Path to file where to output visualized tokens.")]
+        public string TokenVisualizationOutputFile { get; init; } = "Logs/visualizedTokens.txt";
 
-    [Option('l', "logs", Required = false, HelpText = "Path to file where to output logs.")]
-    public string LogsOutputFile { get; init; } = "logs.txt";
+        [Option('l', "logs", Required = false, HelpText = "Path to file where to output logs.")]
+        public string LogsOutputFile { get; init; } = "Logs/logs.txt";
 
-    [Option('b', "ast-before", Required = false, HelpText = "Path to file where to output AST.")]
-    public string BeforeAstOutputFile { get; init; } = "before-ast.dot";
+        [Option('b', "ast-before", Required = false, HelpText = "Path to file where to output AST.")]
+        public string BeforeAstOutputFile { get; init; } = "Logs/before-ast.dot";
     
-    [Option('a', "ast-after", Required = false, HelpText = "Path to file where to output AST.")]
-    public string AfterAstOutputFile { get; init; } = "after-ast.dot";
+        [Option('a', "ast-after", Required = false, HelpText = "Path to file where to output AST.")]
+        public string AfterAstOutputFile { get; init; } = "Logs/after-ast.dot";
+    }
 }

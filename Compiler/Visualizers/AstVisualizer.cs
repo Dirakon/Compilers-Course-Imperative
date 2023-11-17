@@ -1,10 +1,10 @@
-namespace Compiler;
-
+using GiGraph.Dot.Entities.Graphs;
 using GiGraph.Dot.Entities.Labels;
+using GiGraph.Dot.Entities.Nodes;
 using GiGraph.Dot.Extensions;
 using GiGraph.Dot.Types.Nodes;
-using GiGraph.Dot.Entities.Graphs;
-using GiGraph.Dot.Entities.Nodes;
+
+namespace Compiler.Visualizers;
 
 public static class AstVisualizer
 {
