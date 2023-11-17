@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using Compiler;
 using Compiler.Imperative;
+using Compiler.TypeChecking;
 
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
@@ -14,6 +15,29 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
             try
             {
                 parser.Parse();
+                var rootNode = parser.RootNode;
+                var typeCheckingErrors = rootNode.TypeCheck();
+                if (typeCheckingErrors is not OperationFailure(var someErrors))
+                {
+                    Console.WriteLine("No typechecking errors found!");
+                }
+                else
+                {
+                    var somewhatOrderedErrors = someErrors
+                            .OrderBy(error => error
+                                .Locations
+                                .DefaultIfEmpty()
+                                .MinBy(loc => loc?.StartLine)
+                                ?.StartLine);
+                    foreach (var error in somewhatOrderedErrors)
+                    {
+                        var locationString = string.Join(", ", error.Locations.Select(location => $"[{location}]"));   
+                        Console.WriteLine($"At {locationString}:");
+                        Console.WriteLine($"\t{error.Message}");
+                        Console.WriteLine();
+                    }
+                }
+                
                 AstVisualizer.VisualizeAst(parser.RootNode, o.AstOutputFile);
             }
             catch (SyntaxErrorException er)
@@ -21,7 +45,6 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                 Console.WriteLine(er.Message);
             }
         }
-
         TokenVisualiser.VisualiseTokensIntoSourceCode(
             ImperativeScanner.GetAllTokens(File.ReadAllText(o.InputFile)),
             o.TokenVisualizationOutputFile);

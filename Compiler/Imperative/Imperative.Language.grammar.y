@@ -378,9 +378,9 @@ Primary
 | INT_LITERAL {$$ = new IntegerPrimary(int.Parse(@1.UnderlyingString), @1); @$ = $$.LexLocation;}
 | PLUS INT_LITERAL {$$ = new IntegerPrimary(int.Parse(@2.UnderlyingString), @1.Merge(@2)); @$ = $$.LexLocation;}
 | MINUS INT_LITERAL {$$ = new IntegerPrimary(-int.Parse(@2.UnderlyingString), @1.Merge(@2)); @$ = $$.LexLocation;}
-| REAL_LITERAL {$$ = new RealPrimary(double.Parse(@1.UnderlyingString), @1); @$ = $$.LexLocation;}
-| PLUS REAL_LITERAL {$$ = new RealPrimary(double.Parse(@2.UnderlyingString), @1.Merge(@2)); @$ = $$.LexLocation;}
-| MINUS REAL_LITERAL {$$ = new RealPrimary(-double.Parse(@2.UnderlyingString), @1.Merge(@2)); @$ = $$.LexLocation;}
+| REAL_LITERAL {$$ = new RealPrimary(double.Parse(@1.UnderlyingString, new CultureInfo("en-US")), @1); @$ = $$.LexLocation;}
+| PLUS REAL_LITERAL {$$ = new RealPrimary(double.Parse(@2.UnderlyingString, new CultureInfo("en-US")), @1.Merge(@2)); @$ = $$.LexLocation;}
+| MINUS REAL_LITERAL {$$ = new RealPrimary(-double.Parse(@2.UnderlyingString, new CultureInfo("en-US")), @1.Merge(@2)); @$ = $$.LexLocation;}
 | RoutineCall {$$ = $1; @$ = @1;}
 | ModifiablePrimary {$$ = $1; @$ = @1;}
 ;

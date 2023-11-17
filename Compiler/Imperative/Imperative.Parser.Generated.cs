@@ -3,8 +3,8 @@
 // (see accompanying GPPGcopyright.rtf)
 
 // GPPG version 1.5.2
-// DateTime: 11/7/2023 12:50:37AM
-// Input file <Imperative/Imperative.Language.grammar.y - 11/7/2023 12:50:35AM>
+// DateTime: 11/7/2023 7:28:34 PM
+// Input file <Imperative/Imperative.Language.grammar.y - 11/7/2023 7:28:31 PM>
 
 // options: no-lines gplex
 
@@ -716,13 +716,13 @@ internal partial class ImperativeParser: ShiftReduceParser<INode, CustomLexLocat
 {CurrentSemanticValue = new IntegerPrimary(-int.Parse(LocationStack[LocationStack.Depth-1].UnderlyingString), LocationStack[LocationStack.Depth-2].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
         break;
       case 69: // Primary -> REAL_LITERAL
-{CurrentSemanticValue = new RealPrimary(double.Parse(LocationStack[LocationStack.Depth-1].UnderlyingString), LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+{CurrentSemanticValue = new RealPrimary(double.Parse(LocationStack[LocationStack.Depth-1].UnderlyingString, new CultureInfo("en-US")), LocationStack[LocationStack.Depth-1]); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
         break;
       case 70: // Primary -> PLUS, REAL_LITERAL
-{CurrentSemanticValue = new RealPrimary(double.Parse(LocationStack[LocationStack.Depth-1].UnderlyingString), LocationStack[LocationStack.Depth-2].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+{CurrentSemanticValue = new RealPrimary(double.Parse(LocationStack[LocationStack.Depth-1].UnderlyingString, new CultureInfo("en-US")), LocationStack[LocationStack.Depth-2].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
         break;
       case 71: // Primary -> MINUS, REAL_LITERAL
-{CurrentSemanticValue = new RealPrimary(-double.Parse(LocationStack[LocationStack.Depth-1].UnderlyingString), LocationStack[LocationStack.Depth-2].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
+{CurrentSemanticValue = new RealPrimary(-double.Parse(LocationStack[LocationStack.Depth-1].UnderlyingString, new CultureInfo("en-US")), LocationStack[LocationStack.Depth-2].Merge(LocationStack[LocationStack.Depth-1])); CurrentLocationSpan = CurrentSemanticValue.LexLocation;}
         break;
       case 72: // Primary -> RoutineCall
 {CurrentSemanticValue = ValueStack[ValueStack.Depth-1]; CurrentLocationSpan = LocationStack[LocationStack.Depth-1];}

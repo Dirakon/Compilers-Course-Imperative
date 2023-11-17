@@ -1,0 +1,63 @@
+type SomeDuplicateRecordType is 
+    record { 
+        var someDuplicateRecordField : integer;
+        var someDuplicateRecordField : real;
+    } end;
+    
+type SomeDuplicateRecordType is 
+    record { 
+    } end;
+
+type SomeRecordType is 
+    record {
+        var someRecordField : integer;
+    } end;
+
+routine SomeRoutineReturningInt(): integer is
+    return;
+end;
+
+routine SomeRoutineReturningNothing() is
+    return 1;
+end;
+
+var variableTryingToBecomeVoid is SomeRoutineReturningNothing(); 
+
+var variableWithInvalidExpression is 1 + true; 
+
+var variableWithInvalidTypeConversion : boolean is 1.0; 
+
+routine RoutineTakingTwoBools(bool1 : boolean, bool2 : boolean) is
+
+end;
+
+
+routine SomeRoutine() is
+    someUndeclaredVariableTryingToBeAssigned := 1.0; 
+    
+    var someVariableAssignmentOfWhichFailsTypeConversion : boolean;
+    someVariableAssignmentOfWhichFailsTypeConversion := 1.0;
+    
+    var bunchOfUndeclared : UndeclaredType is undeclaredFunction() + undeclaredVariable;
+    
+    for _ in reverse true..10.0 loop
+        end;
+    while 10 loop
+        end;
+    if 10 + 69 then 
+    else 
+    end;
+    
+    var invalidOperation is 10 and 8;
+    RoutineTakingTwoBools(1.0, 2.0, 3.0, 4.0);
+    
+    var arrayWithoutSizeInWrongPlace : array [] integer;
+    
+    var arrayWithBadSizeExpression : array [true] integer;
+    
+    var someInt: integer;
+    someInt[2] := 2;
+    
+    var someRecord: record {var field1: integer;} end;
+    someRecord.field2 := 2;
+end;
