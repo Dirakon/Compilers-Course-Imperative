@@ -1,0 +1,14 @@
+var nol is 0;
+var simplifiedVariable is false xor false xor (true and false);
+
+routine WhileLoop(n: integer): integer is
+    var temp: integer;
+    if 1 < 0 then
+        return -1;
+    end;
+    while -1 > 0 loop 
+        temp := n % 10;
+        n := n/10;
+    end;
+    return temp;
+end;

@@ -3,7 +3,6 @@ using Compiler;
 using Compiler.Imperative;
 using Compiler.TypeChecking;
 
-
 Parser.Default.ParseArguments<CommandLineOptions>(args)
     .WithParsed(o =>
     {
@@ -38,7 +37,10 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                     }
                 }
                 
-                AstVisualizer.VisualizeAst(parser.RootNode, o.AstOutputFile);
+                var program = parser.RootNode;
+                AstVisualizer.VisualizeAst(program, o.BeforeAstOutputFile);
+                program = new Compiler.Program(program.Declarations.WithNodesTransformed(AstOptimization.ExpressionSimplifier));
+                AstVisualizer.VisualizeAst(program, o.AfterAstOutputFile);
             }
             catch (SyntaxErrorException er)
             {
@@ -61,6 +63,9 @@ public class CommandLineOptions
     [Option('l', "logs", Required = false, HelpText = "Path to file where to output logs.")]
     public string LogsOutputFile { get; init; } = "logs.txt";
 
-    [Option('a', "ast", Required = false, HelpText = "Path to file where to output AST.")]
-    public string AstOutputFile { get; init; } = "ast.dot";
+    [Option('b', "ast-before", Required = false, HelpText = "Path to file where to output AST.")]
+    public string BeforeAstOutputFile { get; init; } = "before-ast.dot";
+    
+    [Option('a', "ast-after", Required = false, HelpText = "Path to file where to output AST.")]
+    public string AfterAstOutputFile { get; init; } = "after-ast.dot";
 }

@@ -254,9 +254,6 @@ public record RealPrimary(double Literal, CustomLexLocation LexLocation) : IPrim
 
 public record BoolPrimary(bool Value, CustomLexLocation LexLocation) : IPrimary;
 
-
-
-
 public static class AstExtensions
 {
     public static INodeList<T> WithNodesRemoved<T>(this INodeList<T> source, IEnumerable<T> nodesToRemove)
@@ -268,11 +265,11 @@ public static class AstExtensions
             EmptyNodeList<T> emptyNodeList => emptyNodeList,
             NonEmptyNodeList<T> nonEmptyNodeList => toRemove.Contains(nonEmptyNodeList.ThisNode)
                 ? nonEmptyNodeList.OtherNodes.WithNodesRemoved(toRemove)
-                : nonEmptyNodeList with {OtherNodes = nonEmptyNodeList.OtherNodes.WithNodesRemoved(toRemove)},
+                : nonEmptyNodeList with { OtherNodes = nonEmptyNodeList.OtherNodes.WithNodesRemoved(toRemove) },
             _ => throw new ArgumentOutOfRangeException(nameof(source))
         };
     }
-    
+
     public static INodeList<T> WithNodesTransformed<T>(this INodeList<T> source, Func<T, T?> transformerFunction)
         where T : INode
     {
@@ -282,7 +279,11 @@ public static class AstExtensions
             NonEmptyNodeList<T> nonEmptyNodeList => transformerFunction(nonEmptyNodeList.ThisNode) switch
             {
                 null => nonEmptyNodeList.OtherNodes.WithNodesTransformed(transformerFunction),
-                {} someNewNode => nonEmptyNodeList with {ThisNode = someNewNode, OtherNodes = nonEmptyNodeList.OtherNodes.WithNodesTransformed(transformerFunction)}
+                { } someNewNode => nonEmptyNodeList with
+                {
+                    ThisNode = someNewNode,
+                    OtherNodes = nonEmptyNodeList.OtherNodes.WithNodesTransformed(transformerFunction)
+                }
             },
             _ => throw new ArgumentOutOfRangeException(nameof(source))
         };
