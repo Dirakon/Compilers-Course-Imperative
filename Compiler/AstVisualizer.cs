@@ -257,16 +257,24 @@ public static class AstVisualizer
     private static DotNode AddSummandOperationToGraph(Summand first, NonEmptyNodeList<SummandOperation> operations,
         DotGraph graph, DotNode parentNode)
     {
-        DotNode node = null;
+        DotNode node = null!;
+        DotNode previous = null;
         foreach (var op in operations)
         {
             node = CreateNode(graph, op.GetType(), null);
-            graph.Edges.Add(parentNode.Id, node.Id);
-            AddSummandToGraph(first, graph, node);
+            if (previous != null)
+            {
+                graph.Edges.Add(node.Id, previous.Id);
+                AddSummandToGraph(first, graph, previous);
+            }
+            else
+            {
+                AddSummandToGraph(first, graph, node);
+            }
             first = op.Summand;
-            parentNode = node;
+            previous = node;
         }
-
+        graph.Edges.Add(parentNode.Id, node.Id);
         return AddSummandToGraph(first, graph, node);
     }
 
@@ -323,7 +331,7 @@ public static class AstVisualizer
     private static DotNode AddRelationOperationToGraph(Relation rel, NonEmptyNodeList<RelationOperation> operations,
         DotGraph graph, DotNode parentNode)
     {
-        DotNode node = null;
+        DotNode node = null!;
         foreach (var op in operations)
         {
             node = CreateNode(graph, op.GetType(), null);
@@ -365,6 +373,7 @@ public static class AstVisualizer
                 ExpressionFactor expressionFactor => AddExpressionToGraph(expressionFactor.Expression, graph,
                     parentNode),
                 RoutineCall routineCall => AddRoutineCallToGraph(routineCall, graph, parentNode),
+                _ => throw new ArgumentOutOfRangeException(nameof(factor), factor, null)
             };
         }
         catch (Exception e)
@@ -397,16 +406,25 @@ public static class AstVisualizer
     private static DotNode AddFactorOperationToGraph(IFactor factor, NonEmptyNodeList<FactorOperation> operations,
         DotGraph graph, DotNode parentNode)
     {
-        DotNode node = null;
+        DotNode node = null!;
+        DotNode previous = null;
         foreach (var op in operations)
         {
             node = CreateNode(graph, op.GetType(), null);
-            graph.Edges.Add(parentNode.Id, node.Id);
-            AddFactorToGraph(factor, graph, node);
+            if (previous != null)
+            {
+                graph.Edges.Add(node.Id, previous.Id);
+                AddFactorToGraph(factor, graph, previous);
+            }
+            else
+            {
+                AddFactorToGraph(factor, graph, node);
+            }
             factor = op.Factor;
-            parentNode = node;
+            previous = node;
         }
 
+        graph.Edges.Add(parentNode.Id, node.Id);
         return AddFactorToGraph(factor, graph, node);
     }
 }
