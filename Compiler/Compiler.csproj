@@ -9,7 +9,8 @@
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.9.1" />
         <PackageReference Include="GiGraph.Dot" Version="3.0.1" />
-        <PackageReference Include="YaccLexTools" Version="1.2.0"/>
+        <PackageReference Include="LLVMSharp" Version="5.0.0" />
+        <PackageReference Include="YaccLexTools" Version="1.2.0" />
     </ItemGroup>
     <ItemGroup Label="Imperative">
         <YaccFile Include="Imperative\Imperative.Language.grammar.y">
@@ -31,6 +32,6 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="Properties\"/>
+        <Folder Include="Properties\" />
     </ItemGroup>
 </Project>

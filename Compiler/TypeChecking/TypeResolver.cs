@@ -10,16 +10,43 @@ public static class TypeResolver
         type switch
         {
             ArrayType arrayType =>
-                arrayType.UnderlyingType
-                    .TryResolveType(scope, isInFunctionSignature)
-                    .Map(
-                        resolvedUnderlyingType =>
-                            new ResolvedArrayType(arrayType.SizeExpression, resolvedUnderlyingType))
-                    .AppendError(
-                        TypeCheckArraySize(
-                            arrayType.SizeExpression,
-                            isInFunctionSignature, scope,
-                            arrayType.LexLocation)),
+                (arrayType.UnderlyingType
+                        .TryResolveType(scope, isInFunctionSignature) switch
+                    {
+                        ({ } resolvedUnderlyingType, var someError) when arrayType.SizeExpression == null
+                            => new TypeInferenceResult(
+                                new ResolvedArrayType(null, resolvedUnderlyingType),
+                                someError),
+                        (InferredType: null, var someError) when arrayType.SizeExpression == null
+                            => someError.ToTypeInferenceFailure(),
+                        ({ } inferredType, var someError)
+                            => arrayType.SizeExpression.TrySimplifyToPrimary<IntegerPrimary>() switch
+                            {
+                                (Literal: var someInt, _)
+                                    => new TypeInferenceResult(new ResolvedArrayType(someInt, inferredType), someError),
+                                null => someError
+                                    .TryAdd(new TypeCheckerError(
+                                            "Cannot simplify size of array to constant integer",
+                                            new[] { arrayType.SizeExpression.LexLocation })
+                                        .ToFailure())
+                                    .ToTypeInferenceFailure()
+                            },
+                        (InferredType: null, var someError)
+                            => someError.TryAdd(
+                                    arrayType.SizeExpression.TrySimplifyToPrimary<IntegerPrimary>() is null
+                                        ? new TypeCheckerError(
+                                                "Cannot simplify size of array to constant integer",
+                                                new[] { arrayType.SizeExpression.LexLocation })
+                                            .ToFailure()
+                                        : null
+                                )
+                                .ToTypeInferenceFailure()
+                    })
+                .AppendError(
+                    TypeCheckArraySize(
+                        arrayType.SizeExpression,
+                        isInFunctionSignature, scope,
+                        arrayType.LexLocation)),
             BoolType => new TypeInferenceResult(new ResolvedBoolType(), null),
             IntType => new TypeInferenceResult(new ResolvedIntType(), null),
             RealType => new TypeInferenceResult(new ResolvedRealType(), null),
@@ -61,11 +88,12 @@ public static class TypeResolver
         Scope scope, CustomLexLocation lexLocation)
     {
         var possibleInvalidPlaceFailure =
-            // (isFunctionParameter && arraySizeExpression != null) || // TODO: is it valid for size to be in param?
+            (isInFunctionSignature && arraySizeExpression != null) || 
             !isInFunctionSignature && arraySizeExpression == null
                 ? new OperationFailure(new[]
                 {
-                    new TypeCheckerError("Arrays have to have size expression when not in function signature",
+                    new TypeCheckerError("Arrays should not have size specified in routine signatures, " +
+                                         "and have it specified in other places",
                         new[] { lexLocation })
                 })
                 : null;
@@ -83,7 +111,13 @@ public static class TypeResolver
     public static bool IsEquivalentTo(this IResolvedType type1, IResolvedType type2) =>
         (type1, type2) switch
         {
-            (ResolvedArrayType el1, ResolvedArrayType el2) => el1.UnderlyingType.IsEquivalentTo(el2.UnderlyingType),
+            (ResolvedArrayType el1, ResolvedArrayType el2) => el1.UnderlyingType.IsEquivalentTo(el2.UnderlyingType)
+                                                              && (el1.ConstantArraySize, el2.ConstantArraySize) switch
+                                                              {
+                                                                  (null, null) => true,
+                                                                  ({ } size1, { } size2) => size1 == size2,
+                                                                  _ => false
+                                                              },
             (ResolvedBoolType, ResolvedBoolType) => true,
             (ResolvedIntType, ResolvedIntType) => true,
             (ResolvedRealType, ResolvedRealType) => true,
@@ -106,11 +140,13 @@ public static class TypeResolver
 
         return (proposedInitialType, proposedDestinationType) switch
         {
+            (ResolvedArrayType(_, var underlyingType1), ResolvedArrayType(null, var underlyingType2))
+                => underlyingType1.IsEquivalentTo(underlyingType2),
             (ResolvedRealType, ResolvedIntType) => true,
             (ResolvedBoolType, ResolvedIntType) => true,
             (ResolvedIntType, ResolvedRealType) => true,
             (ResolvedBoolType, ResolvedRealType) => true,
-            (ResolvedIntType, ResolvedBoolType) => true, // NOTE: Requires some runtime checks
+            (ResolvedIntType, ResolvedBoolType) => true, // TODO: Requires some runtime checks
             _ => false
         };
     }
@@ -164,10 +200,13 @@ public record ResolvedBoolType : IResolvedType
     public string GetTypeName() => "bool";
 }
 
-public record ResolvedArrayType(Expression? SizeExpression, IResolvedType UnderlyingType) : IResolvedType
+public record ResolvedArrayType(int? ConstantArraySize, IResolvedType UnderlyingType) : IResolvedType
 {
     [Pure]
-    public string GetTypeName() => $"array of {UnderlyingType.GetTypeName()}";
+    public string GetTypeName() => $"array of {UnderlyingType.GetTypeName()} " + 
+                                   (ConstantArraySize == null
+                                       ? "[]"
+                                       : $"[{ConstantArraySize}]");
 }
 
 public record ResolvedRecordType(IReadOnlyDictionary<string, IResolvedType> Variables) : IResolvedType

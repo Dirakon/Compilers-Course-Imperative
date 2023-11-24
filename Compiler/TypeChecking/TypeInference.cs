@@ -191,7 +191,8 @@ public static class TypeInference
                                 routineCall.Arguments
                                     .Select(arg => arg.TryInferType(scope).PossibleError)
                                     .NotNull()))
-                }
+                },
+            _ => throw new ArgumentOutOfRangeException(nameof(factor))
         };
 
     [Pure]
