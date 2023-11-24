@@ -270,6 +270,20 @@ public static class AstExtensions
         };
     }
 
+    public static INodeList<T> WithNodesAdded<T>(this INodeList<T> source, INodeList<T> nodesToAdd)
+        where T : INode
+    {
+        return source switch
+        {
+            EmptyNodeList<T> => nodesToAdd,
+            NonEmptyNodeList<T> nonEmptyNodeList => nonEmptyNodeList with
+            {
+                OtherNodes = nonEmptyNodeList.OtherNodes.WithNodesAdded(nodesToAdd)
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(source))
+        };
+    }
+
     public static INodeList<T> WithNodesTransformed<T>(this INodeList<T> source, Func<T, T?> transformerFunction)
         where T : INode
     {

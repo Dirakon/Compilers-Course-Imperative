@@ -88,8 +88,11 @@ public static class TypeChecker
 
 
     [Pure]
-    public static OperationFailure? GetBadArgumentsProvidedError(IDeclaredRoutineArgumentType[] requiredArgumentTypes,
-        IEnumerable<Expression> givenArguments, CustomLexLocation lexLocation, Scope scope)
+    public static OperationFailure? GetBadArgumentsProvidedError(
+        IDeclaredRoutineArgumentType[] requiredArgumentTypes,
+        IEnumerable<Expression> givenArguments, 
+        CustomLexLocation lexLocation, 
+        Scope scope)
     {
         var givenArgumentsArray = givenArguments.ToArray();
         var possibleArgumentCountFailure = requiredArgumentTypes.Length != givenArgumentsArray.Length
@@ -106,7 +109,6 @@ public static class TypeChecker
                 i < requiredArgumentTypes.Length
                     ? requiredArgumentTypes[i]
                     : new UnresolvedDeclaredRoutineArgumentType());
-
 
         return possibleArgumentCountFailure
             .TryAdd(OperationFailure.CombineErrors(requiredArgumentTypesFilledToGiven

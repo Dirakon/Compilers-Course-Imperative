@@ -7,16 +7,21 @@ using Compiler.Visualizers;
 Parser.Default.ParseArguments<CommandLineOptions>(args)
     .WithParsed(o =>
     {
+        var builtInDeclarations = ImperativeConverterFunctions.GetConverterFunctionsDeclarations();
         using (var scanner = new ImperativeScanner(o.InputFile, o.LogsOutputFile))
         {
-            var parser = new ImperativeParser(scanner, o.LogsOutputFile);
+            var parser = new ImperativeParser(scanner);
             // TODO: figure out how to work with output file in a better way
             File.Delete(o.LogsOutputFile);
             try
             {
                 parser.Parse();
-                var rootNode = parser.RootNode;
-                var typeCheckingErrors = rootNode.TypeCheck();
+                var program = parser.RootNode with
+                {
+                    Declarations =
+                    parser.RootNode.Declarations.WithNodesAdded(DummyNodeList.From(builtInDeclarations))
+                };
+                var typeCheckingErrors = program.TypeCheck();
                 if (typeCheckingErrors is not OperationFailure(var someErrors))
                 {
                     Console.WriteLine("No typechecking errors found!");
@@ -24,23 +29,23 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                 else
                 {
                     var somewhatOrderedErrors = someErrors
-                            .OrderBy(error => error
-                                .Locations
-                                .DefaultIfEmpty()
-                                .MinBy(loc => loc?.StartLine)
-                                ?.StartLine);
+                        .OrderBy(error => error
+                            .Locations
+                            .DefaultIfEmpty()
+                            .MinBy(loc => loc?.StartLine)
+                            ?.StartLine);
                     foreach (var error in somewhatOrderedErrors)
                     {
-                        var locationString = string.Join(", ", error.Locations.Select(location => $"[{location}]"));   
+                        var locationString = string.Join(", ", error.Locations.Select(location => $"[{location}]"));
                         Console.WriteLine($"At {locationString}:");
                         Console.WriteLine($"\t{error.Message}");
                         Console.WriteLine();
                     }
                 }
-                
-                var program = parser.RootNode;
+
                 AstVisualizer.VisualizeAst(program, o.BeforeAstOutputFile);
-                program = new Compiler.Program(program.Declarations.WithNodesTransformed(AstOptimization.ExpressionSimplifier));
+                program = new Compiler.Program(
+                    program.Declarations.WithNodesTransformed(AstOptimization.ExpressionSimplifier));
                 AstVisualizer.VisualizeAst(program, o.AfterAstOutputFile);
             }
             catch (SyntaxErrorException er)
@@ -48,10 +53,36 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                 Console.WriteLine(er.Message);
             }
         }
+
         TokenVisualiser.VisualiseTokensIntoSourceCode(
             ImperativeScanner.GetAllTokens(File.ReadAllText(o.InputFile)),
             o.TokenVisualizationOutputFile);
     });
+
+public static class DummyNodeList
+{
+    /// <summary>
+    /// Create node list with no lex locations
+    /// </summary>
+    public static INodeList<T> From<T>(IEnumerable<T> nodes) where T : class, INode
+    {
+        using var enumerator = nodes.GetEnumerator();
+        return From(enumerator);
+    }
+
+    private static INodeList<T> From<T>(IEnumerator<T> enumerator) where T : class, INode
+    {
+        if (!enumerator.MoveNext())
+        {
+            return new EmptyNodeList<T>();
+        }
+
+        return new NonEmptyNodeList<T>(
+            enumerator.Current,
+            From(enumerator),
+            CustomLexLocation.Empty);
+    }
+}
 
 namespace Compiler
 {
@@ -68,7 +99,7 @@ namespace Compiler
 
         [Option('b', "ast-before", Required = false, HelpText = "Path to file where to output AST.")]
         public string BeforeAstOutputFile { get; init; } = "Logs/before-ast.dot";
-    
+
         [Option('a', "ast-after", Required = false, HelpText = "Path to file where to output AST.")]
         public string AfterAstOutputFile { get; init; } = "Logs/after-ast.dot";
     }
