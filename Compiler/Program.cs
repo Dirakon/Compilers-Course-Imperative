@@ -21,7 +21,7 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                     Declarations =
                     parser.RootNode.Declarations.WithNodesAdded(DummyNodeList.From(builtInDeclarations))
                 };
-                var typeCheckingErrors = program.TypeCheck();
+                var (globalScope, typeCheckingErrors) = program.TypeCheckAndGetGlobalScope();
                 if (typeCheckingErrors is not OperationFailure(var someErrors))
                 {
                     Console.WriteLine("No typechecking errors found!");
