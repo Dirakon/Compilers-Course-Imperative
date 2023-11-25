@@ -1,0 +1,27 @@
+routine EntryPoint() is
+    var nonConst is 1;
+    var arrayWithNonIntSize : array [true] real;
+    var arrayWithNoSize : array [] real;
+    var arrayWithNonSimplifiableSize : array [1 + nonConst] real;
+    var arrayWithSimplifiableSize : array [1 + (2 - 3)] real;
+    
+    
+    var someArray : array [7] integer;
+    var someArraySameSizeSameType : array [7] integer;
+    var someArrayDifferentSizeSameType : array [8] integer;
+    var someArrayDifferentTypeSameSize : array [7] real;
+    
+    someArray := someArraySameSizeSameType;
+    someArray := someArrayDifferentSizeSameType;
+    someArray := someArrayDifferentTypeSameSize;
+    
+    
+    SomeRoutineTakingArray(someArrayDifferentTypeSameSize);
+    SomeRoutineTakingArray(someArraySameSizeSameType);
+end;
+
+routine SomeRoutineTakingArray(someArray : array [] integer) is
+end;
+
+routine RoutineInvalidArraySignature(someArray : array [7] integer) is
+end;

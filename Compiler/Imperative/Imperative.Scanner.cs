@@ -14,7 +14,7 @@ internal partial class ImperativeScanner : IDisposable
         _inputFileStream = inputFileStream;
     }
 
-    public ImperativeScanner(string inputFilePath, string logsFilePath)
+    public ImperativeScanner(string inputFilePath, string? logsFilePath)
         : this(new FileStream(inputFilePath, FileMode.Open), true)
     {
         _logsFilePath = logsFilePath;

@@ -1,3 +1,5 @@
+using Compiler.Utils;
+
 namespace Compiler;
 
 public static class AstOptimization
@@ -8,6 +10,10 @@ public static class AstOptimization
         {
             RoutineDeclaration routineDeclaration => CheckRoutineDeclaration(routineDeclaration),
             VariableDeclaration variableDeclaration => CheckVariableDeclaration(variableDeclaration),
+            // TODO: текущая имплементация WithNodesTransformed удаляет все null
+            // 1) не обработан TypeDeclaration - они удалятся из AST
+            // 2) не обработан TypeDeclaration - в нем ничего не сократится (например размеры внутри массивов)
+            TypeDeclaration typeDeclaration => typeDeclaration,
             _ => null
         };
     }
@@ -22,20 +28,24 @@ public static class AstOptimization
         return bodyElement switch
         {
             VariableDeclaration variableDeclaration => CheckVariableDeclaration(variableDeclaration),
-            TypeDeclaration typeDeclaration => typeDeclaration,
-            Return returnStatement => returnStatement,
-            RoutineCall routineCall => routineCall,
+            TypeDeclaration typeDeclaration => typeDeclaration, // TODO: не обработан TypeDeclaration - в нем ничего не сократится (например размеры внутри массивов)
+            Return returnStatement => returnStatement, // TODO: не обработан Return - в нем ничего не сократится (например `return 1 + 1;`)
+            RoutineCall routineCall => routineCall, // TODO: не обработан RoutineCall - в нем ничего не сократится (например `Call(1 + 1, 2);`)
             IfStatement ifStatement => CheckIfStatement(ifStatement),
             WhileLoop whileLoop => CheckWhileLoop(whileLoop),
-            Assignment assignment => assignment,
-            ForLoop forLoop => forLoop,
+            Assignment assignment => assignment, // TODO: не обработан Assignment - в нем ничего не сократится (например `a := 1 + 1;`)
+            ForLoop forLoop => forLoop, // TODO: не обработан ForLoop - в нем ничего не сократится
+                                        // a) внутри body
+                                        // b) в range
+                                        // c) он не удалится кога из-за range итераций не будет
             _ => throw new ArgumentOutOfRangeException(nameof(bodyElement), bodyElement, null)
         };
     }
 
     private static IfStatement? CheckIfStatement(IfStatement ifStatement)
     {
-        ifStatement = ifStatement with { Condition = CheckExpression(ifStatement.Condition) };
+        ifStatement = ifStatement with { Condition = SimplifyExpression(ifStatement.Condition) };
+        // TODO: не обработано тело ifStatement и тело elseStatement
         if (ifStatement.Condition.First.First.First.First is BoolPrimary boolPrimary)
             return boolPrimary.Value ? ifStatement : null;
         return ifStatement;
@@ -43,7 +53,8 @@ public static class AstOptimization
 
     private static WhileLoop? CheckWhileLoop(WhileLoop whileLoop)
     {
-        whileLoop = whileLoop with { Condition = CheckExpression(whileLoop.Condition) };
+        whileLoop = whileLoop with { Condition = SimplifyExpression(whileLoop.Condition) };
+        // TODO: не обработано тело while
         if (whileLoop.Condition.First.First.First.First is BoolPrimary boolPrimary)
             return boolPrimary.Value ? whileLoop : null;
         return whileLoop;
@@ -51,12 +62,46 @@ public static class AstOptimization
 
     private static VariableDeclaration CheckVariableDeclaration(VariableDeclaration variableDeclaration)
     {
+        // TODO: variableDeclaration.Type не обработан - там могут быть expression, например
+        // a) размер массива
+        // b) другие variableDeclaration внутри рекорда
         if (variableDeclaration.Expression != null)
-            return variableDeclaration with { Expression = CheckExpression(variableDeclaration.Expression) };
+            return variableDeclaration with { Expression = SimplifyExpression(variableDeclaration.Expression) };
         return variableDeclaration;
     }
 
-    private static Expression CheckExpression(Expression expression)
+    public static TPrimary? TrySimplifyToPrimary<TPrimary>(this Expression expression) where TPrimary : class, IPrimary
+    {
+        var simplifiedExpression = expression.SimplifyExpression();
+        var allFactors = simplifiedExpression
+            .GetAllFactors();
+        return allFactors is [TPrimary singlePrimaryOfRightType]
+            ? singlePrimaryOfRightType
+            : null;
+    }
+
+    public static IFactor[] GetAllFactors(this Expression expression)
+    {
+        return expression
+            .Operations.Select(relOp => relOp.Relation)
+            .Prepend(expression.First)
+            .SelectMany(
+                relation => 
+                    new[] { relation.Operation?.Simple, relation.First }.NotNull()
+                    .SelectMany(
+                        simple =>
+                            simple
+                                .Operations.Select(sumOp => sumOp.Summand)
+                                .Prepend(simple.First)
+                                .SelectMany(
+                                    summand =>
+                                        summand
+                                            .Operations.Select(facOp => facOp.Factor)
+                                            .Prepend(summand.First))))
+            .ToArray();
+    }
+
+    public static Expression SimplifyExpression(this Expression expression)
     {
         return expression.Operations is NonEmptyNodeList<RelationOperation> operations
             ? CheckRelationOperations(expression, expression.First, operations)
@@ -416,15 +461,19 @@ public static class AstOptimization
     {
         return factor switch
         {
-            ModifiablePrimary modifiablePrimary => modifiablePrimary,
+            ModifiablePrimary modifiablePrimary => modifiablePrimary, // TODO: modifiable primary не обработан
+                                                                      // - можно упростить например
+                                                                      // 1 + a[1 + 1].variable[2 + 3]
             IntegerPrimary integerPrimary => integerPrimary,
             BoolPrimary boolPrimary => boolPrimary,
             RealPrimary realPrimary => realPrimary,
             ExpressionFactor expressionFactor => expressionFactor with
             {
-                Expression = CheckExpression(expressionFactor.Expression)
+                Expression = SimplifyExpression(expressionFactor.Expression)
             },
-            RoutineCall routineCall => routineCall,
+            RoutineCall routineCall => routineCall, // TODO: RoutineCall не обработан
+                                                // - можно упростить например
+                                                // 1 + Call(1 + 1, 2)
             _ => throw new ArgumentOutOfRangeException(nameof(factor), factor, null)
         };
     }

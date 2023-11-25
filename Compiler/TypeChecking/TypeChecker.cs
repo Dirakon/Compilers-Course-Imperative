@@ -6,41 +6,41 @@ namespace Compiler.TypeChecking;
 
 public static class TypeChecker
 {
-    public static OperationFailure? TypeCheck(this Program program)
+    public static (Scope, OperationFailure?) TypeCheckAndGetGlobalScope(this Program program)
     {
-        var currentScope = new Scope(ImmutableDictionary<string, IDeclaredEntity>.Empty);
+        var globalScope = new Scope(ImmutableDictionary<string, IDeclaredEntity>.Empty);
         var possibleFailure = (OperationFailure?)null;
 
         var allGlobalTypeDeclarations = program.Declarations
             .OfSubType<IDeclaration, TypeDeclaration>();
-        (currentScope, possibleFailure) =
-            ExtractGlobalDeclarations(allGlobalTypeDeclarations, currentScope, possibleFailure);
+        (globalScope, possibleFailure) =
+            ExtractGlobalDeclarations(allGlobalTypeDeclarations, globalScope, possibleFailure);
 
         var allGlobalRoutineDeclarations = program.Declarations
             .OfSubType<IDeclaration, RoutineDeclaration>();
-        (currentScope, possibleFailure) =
-            ExtractGlobalDeclarations(allGlobalRoutineDeclarations, currentScope, possibleFailure);
+        (globalScope, possibleFailure) =
+            ExtractGlobalDeclarations(allGlobalRoutineDeclarations, globalScope, possibleFailure);
 
         var allGlobalVariableDeclarations = program.Declarations
             .OfSubType<IDeclaration, VariableDeclaration>();
-        (currentScope, possibleFailure) =
-            ExtractGlobalDeclarations(allGlobalVariableDeclarations, currentScope, possibleFailure);
+        (globalScope, possibleFailure) =
+            ExtractGlobalDeclarations(allGlobalVariableDeclarations, globalScope, possibleFailure);
 
-        return possibleFailure
+        return (globalScope, possibleFailure
             .TryAdd(TryGetConflictingDeclarationsError(program.Declarations))
-            .TryAdd(OperationFailure.CombineErrors(currentScope
+            .TryAdd(OperationFailure.CombineErrors(globalScope
                 .DeclaredEntities
                 .Values
                 .OfSubType<IDeclaredEntity, DeclaredRoutine>()
                 .Select(routine => routine.Body.TypeCheck(
                     routine.ReturnType,
-                    currentScope.AddOrOverwrite(
+                    globalScope.AddOrOverwrite(
                         routine.Arguments
                             .Select(arg => arg.Type is ResolvedDeclaredRoutineArgumentType(var type)
                                 ? new DeclaredVariable(arg.Name, type)
                                 : null)
                             .NotNull())))
-                .NotNull()));
+                .NotNull())));
     }
 
     public static OperationFailure? TryGetConflictingDeclarationsError<T>(IEnumerable<T> declarations)
@@ -88,8 +88,11 @@ public static class TypeChecker
 
 
     [Pure]
-    public static OperationFailure? GetBadArgumentsProvidedError(IDeclaredRoutineArgumentType[] requiredArgumentTypes,
-        IEnumerable<Expression> givenArguments, CustomLexLocation lexLocation, Scope scope)
+    public static OperationFailure? GetBadArgumentsProvidedError(
+        IDeclaredRoutineArgumentType[] requiredArgumentTypes,
+        IEnumerable<Expression> givenArguments, 
+        CustomLexLocation lexLocation, 
+        Scope scope)
     {
         var givenArgumentsArray = givenArguments.ToArray();
         var possibleArgumentCountFailure = requiredArgumentTypes.Length != givenArgumentsArray.Length
@@ -106,7 +109,6 @@ public static class TypeChecker
                 i < requiredArgumentTypes.Length
                     ? requiredArgumentTypes[i]
                     : new UnresolvedDeclaredRoutineArgumentType());
-
 
         return possibleArgumentCountFailure
             .TryAdd(OperationFailure.CombineErrors(requiredArgumentTypesFilledToGiven
