@@ -26,7 +26,7 @@ public static class GenerateBitcode
     private static LLVMValueRef DeclarePrintf(LLVMModuleRef module)
     {
         LLVMTypeRef returnType = LLVM.Int32Type();
-        LLVMTypeRef[] parameters = { LLVM.PointerType(LLVM.Int8Type(), 0)};
+        LLVMTypeRef[] parameters = { LLVM.PointerType(LLVM.Int8Type(), 0) };
         return CreateExtern(module, "printf", returnType, parameters);
     }
 
@@ -51,21 +51,33 @@ public static class GenerateBitcode
     {
         return CreateFunction(module, "main", LLVM.Int32Type(), Array.Empty<LLVMTypeRef>());
     }
-    
-    private static (LLVMValueRef, LLVMBuilderRef) CreateEntryPoint(LLVMModuleRef module, ResolvedDeclaredRoutineReturnType returnType)
+
+    private static (LLVMValueRef, LLVMBuilderRef) CreateEntryPoint(LLVMModuleRef module,
+        ResolvedDeclaredRoutineReturnType returnType)
     {
-        Console.WriteLine(returnType);
         return returnType.ReturnType switch
         {
             ResolvedIntType => CreateFunction(module, "EntryPoint", LLVMTypeRef.Int32Type(),
                 Array.Empty<LLVMTypeRef>()),
             ResolvedRealType => CreateFunction(module, "EntryPoint", LLVMTypeRef.DoubleType(),
                 Array.Empty<LLVMTypeRef>()),
-            ResolvedBoolType => CreateFunction(module, "EntryPoint", LLVMTypeRef.Int8Type(),
+            ResolvedBoolType => CreateFunction(module, "EntryPoint", LLVMTypeRef.Int1Type(),
                 Array.Empty<LLVMTypeRef>()),
             _ => (default, default)
         };
     }
+
+    private static LLVMValueRef CreateFormatString(LLVMBuilderRef builder, ResolvedDeclaredRoutineReturnType returnType)
+    {
+        return returnType.ReturnType switch
+        {
+            ResolvedIntType => LLVM.BuildGlobalStringPtr(builder, "%d\n", "str"),
+            ResolvedRealType => LLVM.BuildGlobalStringPtr(builder, "%f\n", "str"),
+            ResolvedBoolType => LLVM.BuildGlobalStringPtr(builder, "%hhu\n", "str"),
+            _ => (default)
+        };
+    }
+
 
     private static void RunMain(LLVMModuleRef module)
     {
@@ -76,12 +88,13 @@ public static class GenerateBitcode
         LLVM.InitializeX86AsmParser();
         LLVM.InitializeX86AsmPrinter();
         LLVM.CreateExecutionEngineForModule(out var engine, module, out var _);
-        
-        
+
+
         var main = LLVM.GetNamedFunction(module, "main");
         LLVM.RunFunction(engine, main, Array.Empty<LLVMGenericValueRef>());
     }
 
+    
     public static LLVMTypeRef GetLlvmRepresentationOf(IResolvedType type, Scope currentScope)
     {
         return type switch
@@ -298,25 +311,32 @@ public static class GenerateBitcode
         throw new NotImplementedException();
     }
 
-    // TODO: return entrypoint function type + str;
     
-    public static void StartExecution(string outputFilePath, IDeclaredRoutineReturnType entryPointRetTp, Scope globalScope)
+    
+    public static void StartExecution(string outputFilePath, IDeclaredRoutineReturnType entryPointRetTp)
     {
         var module = LlvmizeAst(globalScope);
         var context = LLVM.ContextCreate();
         //var module = LLVM.ModuleCreateWithName("Hello World");
         var printfFunc = DeclarePrintf(module);
-        
-        // var (entryPoint, builderEntryPoint) = CreateEntryPoint(module, entryPointRetTp.Cast<ResolvedDeclaredRoutineReturnType>());
-        // var constInt = LLVM.ConstReal(LLVM.DoubleType(), 52.0);
-        // LLVM.BuildRet(builderEntryPoint, constInt);
-   
-        
+
+        var (entryPoint, builderEntryPoint) =
+            CreateEntryPoint(module, (ResolvedDeclaredRoutineReturnType)entryPointRetTp);
+        var constInt = LLVM.ConstInt(LLVM.Int1Type(), 1, true);
+        LLVM.BuildRet(builderEntryPoint, constInt);
+
         var (_, builderMain) = CreateMain(module);
         var entryPoint = LLVM.GetNamedFunction(module, "EntryPoint");
         /*var entryPointOutput = LLVM.BuildCall(builderMain, entryPoint,
             Array.Empty<LLVMValueRef>(), "THIS IS ENTRY POINT OUTPUT");
         LLVM.BuildCall(builderMain, printfFunc, new []{entryPointOutput} , "");*/
+
+        LLVM.BuildCall(builderMain, printfFunc,
+            new LLVMValueRef[]
+            {
+                CreateFormatString(builderMain, (ResolvedDeclaredRoutineReturnType)entryPointRetTp),
+                LLVM.BuildCall(builderMain, entryPoint, Array.Empty<LLVMValueRef>(), "")
+            }, "");
 
                 
        
@@ -324,8 +344,6 @@ public static class GenerateBitcode
         LLVM.BuildCall(builderMain, printfFunc, new LLVMValueRef[] { constStr, LLVM.BuildCall(builderMain, entryPoint, new LLVMValueRef[] {  }, "") }, "");
         var constInt0 = LLVM.ConstInt(LLVM.Int32Type(), 0, true);
         LLVM.BuildRet(builderMain, constInt0);
-        
-        
         LLVM.DumpModule(module);
         LLVM.VerifyModule(module, LLVMVerifierFailureAction.LLVMPrintMessageAction, out var message);
         RunMain(module);
