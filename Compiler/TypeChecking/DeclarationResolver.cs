@@ -1,5 +1,6 @@
 using System.Diagnostics.Contracts;
 using Compiler.Utils;
+using LLVMSharp;
 
 namespace Compiler.TypeChecking;
 
@@ -11,9 +12,9 @@ public interface IDeclaredEntity
     string Identifier { get; }
 }
 
-public record DeclaredVariable(string Identifier, IResolvedType Type) : IDeclaredEntity;
+public record DeclaredVariable(string Identifier, IResolvedType Type, LLVMValueRef LlvmVariable) : IDeclaredEntity;
 
-public record DeclaredType(string Identifier, IResolvedType Type) : IDeclaredEntity;
+public record DeclaredType(string Identifier, IResolvedType Type, LLVMTypeRef LlvmType) : IDeclaredEntity;
 
 public record DeclaredRoutine(
     string Identifier,
@@ -102,7 +103,8 @@ public static class DeclarationResolver
                 ? null
                 : new DeclaredVariable(
                     variableDeclaration.Name,
-                    inferredTypeMaybe.InferredType),
+                    inferredTypeMaybe.InferredType,
+                    LLVM.ConstInt(LLVMTypeRef.Int1Type(), 1, true)), // TODO: ??
             inferredTypeMaybe.PossibleError);
     }
 
@@ -115,7 +117,7 @@ public static class DeclarationResolver
         return new DeclarationResolveResult<DeclaredType>(
             resolvedType.InferredType == null
                 ? null
-                : new DeclaredType(typeDeclaration.Name, resolvedType.InferredType),
+                : new DeclaredType(typeDeclaration.Name, resolvedType.InferredType, LLVMTypeRef.Int1Type()),  // TODO: ??
             resolvedType.PossibleError
         );
     }

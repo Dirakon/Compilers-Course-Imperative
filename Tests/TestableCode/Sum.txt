@@ -1,3 +1,7 @@
-routine Sum(x: real, y: real): real is
-    return x + y;
+routine EntryPoint(): boolean is
+    return (OtherFunc() > OtherFunc()) and (69 > 2);
+end;
+
+routine OtherFunc(): integer is
+    return 69;
 end;

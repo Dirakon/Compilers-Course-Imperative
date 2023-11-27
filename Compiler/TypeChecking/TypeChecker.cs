@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using Compiler.Utils;
+using LLVMSharp;
 
 namespace Compiler.TypeChecking;
 
@@ -37,7 +38,7 @@ public static class TypeChecker
                     globalScope.AddOrOverwrite(
                         routine.Arguments
                             .Select(arg => arg.Type is ResolvedDeclaredRoutineArgumentType(var type)
-                                ? new DeclaredVariable(arg.Name, type)
+                                ? new DeclaredVariable(arg.Name, type, LLVM.ConstInt(LLVMTypeRef.Int1Type(), 1, false))  // TODO: ??
                                 : null)
                             .NotNull())))
                 .NotNull())));
@@ -64,8 +65,8 @@ public static class TypeChecker
     }
 
     [Pure]
-    private static (Scope currentScope, OperationFailure? failure) ExtractGlobalDeclarations<T>(
-        IEnumerable<T> allGlobalVariableDeclarations, Scope currentScope, OperationFailure? failure)
+    public static (Scope currentScope, OperationFailure? failure) ExtractGlobalDeclarations<T>(
+        IEnumerable<T> allGlobalVariableDeclarations, Scope currentScope, OperationFailure? failure = null)
         where T : IDeclaration
     {
         // Note that we iterate through type declarations from top to bottom.
@@ -166,7 +167,7 @@ public static class TypeCheckingAstExtensions
                                 .TypeCheck(
                                     expectedReturnValue,
                                     currentScope.AddOrOverwrite(
-                                        new DeclaredVariable(forLoop.IteratorName, new ResolvedIntType()))))),
+                                        new DeclaredVariable(forLoop.IteratorName, new ResolvedIntType(), LLVM.ConstInt(LLVMTypeRef.Int1Type(), 1, false)))))),
                 IfStatement ifStatement => (currentScope,
                     ifStatement.Condition
                         .TryInferType(currentScope)
