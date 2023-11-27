@@ -1,8 +1,10 @@
 ﻿using CommandLine;
 using Compiler;
+using Compiler.CodeGeneration;
 using Compiler.Imperative;
 using Compiler.TypeChecking;
 using Compiler.Visualizers;
+using LLVMSharp;
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
     .WithParsed(o =>
@@ -46,6 +48,14 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                 AstVisualizer.VisualizeAst(program, o.BeforeAstOutputFile);
                 program = new Compiler.Program(
                     program.Declarations.WithNodesTransformed(AstOptimization.ExpressionSimplifier));
+                
+                if (globalScope.DeclaredEntities.GetValueOrDefault("EntryPoint") is DeclaredRoutine declaredRoutine)
+                {
+                    
+                    GenerateBitcode.StartExecution(o.BitCodeFile, declaredRoutine.ReturnType);
+                }
+                else Console.WriteLine("Entry point is not detected");
+                
                 AstVisualizer.VisualizeAst(program, o.AfterAstOutputFile);
             }
             catch (SyntaxErrorException er)
@@ -102,5 +112,8 @@ namespace Compiler
 
         [Option('a', "ast-after", Required = false, HelpText = "Path to file where to output AST.")]
         public string AfterAstOutputFile { get; init; } = "Logs/after-ast.dot";
+        
+        [Option('c', "bit-code", Required = false, HelpText = "Path to file where to output bitcode.")]
+        public string BitCodeFile { get; init; } = "Logs/final.bc";
     }
 }
