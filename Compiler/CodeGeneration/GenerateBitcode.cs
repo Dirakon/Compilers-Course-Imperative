@@ -10,7 +10,7 @@ namespace Compiler.CodeGeneration;
 public static class GenerateBitcode
 {
     private static List<(LLVMTypeRef, IResolvedType)> AllEncounteredTypes = new List<(LLVMTypeRef, IResolvedType)>();
-    
+
     private static LLVMValueRef CreateExtern(
         LLVMModuleRef module,
         string name,
@@ -63,7 +63,7 @@ public static class GenerateBitcode
                 Array.Empty<LLVMTypeRef>()),
             ResolvedBoolType => CreateFunction(module, "EntryPoint", LLVMTypeRef.Int1Type(),
                 Array.Empty<LLVMTypeRef>()),
-            _ => (default, default)
+            _ => (default, default) // TODO: error or specific message when unformattable type
         };
     }
 
@@ -74,7 +74,7 @@ public static class GenerateBitcode
             ResolvedIntType => LLVM.BuildGlobalStringPtr(builder, "%d\n", "str"),
             ResolvedRealType => LLVM.BuildGlobalStringPtr(builder, "%f\n", "str"),
             ResolvedBoolType => LLVM.BuildGlobalStringPtr(builder, "%hhu\n", "str"),
-            _ => (default)
+            _ => (default) // TODO: error or specific message when unformattable type
         };
     }
 
@@ -94,7 +94,7 @@ public static class GenerateBitcode
         LLVM.RunFunction(engine, main, Array.Empty<LLVMGenericValueRef>());
     }
 
-    
+
     public static LLVMTypeRef GetLlvmRepresentationOf(IResolvedType type, Scope currentScope)
     {
         return type switch
@@ -107,15 +107,16 @@ public static class GenerateBitcode
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
     }
-    
+
     public static LLVMModuleRef LlvmizeAst(this Scope globalScope)
     {
         // TODO: add all user defined type LLVM repr to scope
         var module = LLVM.ModuleCreateWithName("Hello World");
-        
+
         var builder = LLVM.CreateBuilder();
-        
-        foreach (var declaredRoutine in globalScope.DeclaredEntities.Values.OfSubType<IDeclaredEntity, DeclaredRoutine>())
+
+        foreach (var declaredRoutine in
+                 globalScope.DeclaredEntities.Values.OfSubType<IDeclaredEntity, DeclaredRoutine>())
         {
             var returnTypeInAst = declaredRoutine.ReturnType.Cast<ResolvedDeclaredRoutineReturnType>().ReturnType;
             var returnTypeInLlvm = returnTypeInAst != null
@@ -132,15 +133,14 @@ public static class GenerateBitcode
                 var parameterTypeInLlvm = GetLlvmRepresentationOf(parameterTypeInAst.ArgumentType, globalScope);
                 parametersInLlvm.Add(parameterTypeInLlvm);
             }
-            
+
             var funcType = LLVM.FunctionType(returnTypeInLlvm, parametersInLlvm.ToArray(), false);
-        
+
             LLVM.AddFunction(module, declaredRoutine.Identifier, funcType);
-            //var entry = LLVM.AppendBasicBlock(func, "entry");
         }
-        
+
         // TODO: add all LLVM variables reprs to scope
-        
+
         foreach (var declaredRoutine in
                  globalScope.DeclaredEntities.Values.OfSubType<IDeclaredEntity, DeclaredRoutine>())
         {
@@ -166,7 +166,8 @@ public static class GenerateBitcode
         VisitBody(functionScope, declaredRoutine.Body, builder, module);
     }
 
-    private static void VisitBody(Scope functionScope, INodeList<IBodyElement> body, LLVMBuilderRef builder, LLVMModuleRef module)
+    private static void VisitBody(Scope functionScope, INodeList<IBodyElement> body, LLVMBuilderRef builder,
+        LLVMModuleRef module)
     {
         foreach (var bodyElement in body)
         {
@@ -182,7 +183,8 @@ public static class GenerateBitcode
 
                 // Update scope:
                 TypeDeclaration typeDeclaration => throw new NotImplementedException(),
-                VariableDeclaration variableDeclaration => throw new NotImplementedException(),
+                VariableDeclaration variableDeclaration =>
+                    throw new NotImplementedException(), // Visit(variableDeclaration),
                 _ => throw new ArgumentOutOfRangeException(nameof(bodyElement))
             };
         }
@@ -190,25 +192,22 @@ public static class GenerateBitcode
 
     private static Scope Visit(Return @return, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
     {
-        //var returnType = @return.ReturnValue?.TryInferType(currentScope).InferredType;
         switch (@return.ReturnValue)
         {
             case null:
                 LLVM.BuildRetVoid(builder);
                 break;
             case not null:
-                //var returnTypeInLlvm = GetLlvmRepresentationOf(someReturnType, currentScope);
-
                 var returnValue = Visit(@return.ReturnValue, currentScope, builder, module);
                 LLVM.BuildRet(builder, returnValue);
-
                 break;
         }
-        //LLVM.BuildRetVoid()
+
         return currentScope;
     }
 
-    private static LLVMValueRef Visit(Expression expression, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    private static LLVMValueRef Visit(Expression expression, Scope currentScope, LLVMBuilderRef builder,
+        LLVMModuleRef module)
     {
         var currentValue = Visit(expression.First, currentScope, builder, module);
         foreach (var (opType, relation, _) in expression.Operations)
@@ -226,7 +225,8 @@ public static class GenerateBitcode
         return currentValue;
     }
 
-    private static LLVMValueRef Visit(Relation relation, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    private static LLVMValueRef Visit(Relation relation, Scope currentScope, LLVMBuilderRef builder,
+        LLVMModuleRef module)
     {
         var currentValue = Visit(relation.First, currentScope, builder, module);
         if (relation.Operation is var (opType, simple, _))
@@ -234,12 +234,18 @@ public static class GenerateBitcode
             var nextSimple = Visit(simple, currentScope, builder, module);
             currentValue = opType switch
             {
-                SimpleOperationType.Less => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLT, currentValue, nextSimple, ""),
-                SimpleOperationType.LessOrEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLE, currentValue, nextSimple, ""),
-                SimpleOperationType.Greater => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSGT, currentValue, nextSimple, ""),
-                SimpleOperationType.GreaterOrEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSGE, currentValue, nextSimple, ""),
-                SimpleOperationType.Equal => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, currentValue, nextSimple, ""),
-                SimpleOperationType.NotEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntNE, currentValue, nextSimple, ""),
+                SimpleOperationType.Less => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLT, currentValue,
+                    nextSimple, ""),
+                SimpleOperationType.LessOrEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLE, currentValue,
+                    nextSimple, ""),
+                SimpleOperationType.Greater => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSGT, currentValue,
+                    nextSimple, ""),
+                SimpleOperationType.GreaterOrEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSGE, currentValue,
+                    nextSimple, ""),
+                SimpleOperationType.Equal => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, currentValue,
+                    nextSimple, ""),
+                SimpleOperationType.NotEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntNE, currentValue,
+                    nextSimple, ""),
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
@@ -287,16 +293,20 @@ public static class GenerateBitcode
         switch (factor)
         {
             case ExpressionFactor expressionFactor:
+                return Visit(expressionFactor.Expression, currentScope, builder, module);
                 break;
             case BoolPrimary boolPrimary:
+                throw new NotImplementedException();
                 break;
             case IntegerPrimary constInt:
                 return constInt.Literal >= 0
                     ? LLVM.ConstInt(LLVMTypeRef.Int32Type(), (ulong)constInt.Literal, false)
                     : LLVM.ConstNeg(LLVM.ConstInt(LLVMTypeRef.Int32Type(), (ulong)(-constInt.Literal), false));
             case ModifiablePrimary modifiablePrimary:
+                throw new NotImplementedException();
                 break;
             case RealPrimary realPrimary:
+                throw new NotImplementedException();
                 break;
             case RoutineCall routineCall:
                 var function = LLVM.GetNamedFunction(module, routineCall.RoutineName);
@@ -307,29 +317,18 @@ public static class GenerateBitcode
             default:
                 throw new ArgumentOutOfRangeException(nameof(factor));
         }
-        // TODO: other options
-        throw new NotImplementedException();
     }
 
-    
-    
-    public static void StartExecution(string outputFilePath, IDeclaredRoutineReturnType entryPointRetTp)
+
+    public static void StartExecution(string outputFilePath, IDeclaredRoutineReturnType entryPointRetTp,
+        Scope globalScope)
     {
         var module = LlvmizeAst(globalScope);
-        var context = LLVM.ContextCreate();
-        //var module = LLVM.ModuleCreateWithName("Hello World");
+        // var context = LLVM.ContextCreate();
         var printfFunc = DeclarePrintf(module);
-
-        var (entryPoint, builderEntryPoint) =
-            CreateEntryPoint(module, (ResolvedDeclaredRoutineReturnType)entryPointRetTp);
-        var constInt = LLVM.ConstInt(LLVM.Int1Type(), 1, true);
-        LLVM.BuildRet(builderEntryPoint, constInt);
 
         var (_, builderMain) = CreateMain(module);
         var entryPoint = LLVM.GetNamedFunction(module, "EntryPoint");
-        /*var entryPointOutput = LLVM.BuildCall(builderMain, entryPoint,
-            Array.Empty<LLVMValueRef>(), "THIS IS ENTRY POINT OUTPUT");
-        LLVM.BuildCall(builderMain, printfFunc, new []{entryPointOutput} , "");*/
 
         LLVM.BuildCall(builderMain, printfFunc,
             new LLVMValueRef[]
@@ -338,10 +337,6 @@ public static class GenerateBitcode
                 LLVM.BuildCall(builderMain, entryPoint, Array.Empty<LLVMValueRef>(), "")
             }, "");
 
-                
-       
-        var constStr = LLVM.BuildGlobalStringPtr(builderMain, "%d\n", "str");
-        LLVM.BuildCall(builderMain, printfFunc, new LLVMValueRef[] { constStr, LLVM.BuildCall(builderMain, entryPoint, new LLVMValueRef[] {  }, "") }, "");
         var constInt0 = LLVM.ConstInt(LLVM.Int32Type(), 0, true);
         LLVM.BuildRet(builderMain, constInt0);
         LLVM.DumpModule(module);

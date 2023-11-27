@@ -1,5 +1,5 @@
-routine EntryPoint(): integer is
-    return OtherFunc() + OtherFunc() - OtherFunc() - OtherFunc() + OtherFunc() * OtherFunc();
+routine EntryPoint(): boolean is
+    return (OtherFunc() > OtherFunc()) and (69 > 2);
 end;
 
 routine OtherFunc(): integer is
