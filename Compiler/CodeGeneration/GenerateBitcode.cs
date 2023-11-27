@@ -62,6 +62,20 @@ public static class GenerateBitcode
         };
     }
 
+    private static LLVMValueRef CreateFormatString(LLVMBuilderRef builder, ResolvedDeclaredRoutineReturnType returnType)
+    {
+        return returnType.ReturnType switch
+        {
+            ResolvedIntType => LLVM.BuildGlobalStringPtr(builder, "%d\n", "str"),
+            ResolvedRealType => LLVM.BuildGlobalStringPtr(builder, "%f\n", "str"),
+            ResolvedBoolType => LLVM.BuildGlobalStringPtr(builder, "%b\n", "str"),
+            _ => (default)
+        };
+        
+    }
+
+
+
     private static void RunMain(LLVMModuleRef module)
     {
         LLVM.LinkInMCJIT();
@@ -85,20 +99,17 @@ public static class GenerateBitcode
         var module = LLVM.ModuleCreateWithName("Hello World");
         var printfFunc = DeclarePrintf(module);
         
-        var (entryPoint, builderEntryPoint) = CreateEntryPoint(module, entryPointRetTp.Cast<ResolvedDeclaredRoutineReturnType>());
-        var constInt = LLVM.ConstReal(LLVM.DoubleType(), 52.0);
+        var (entryPoint, builderEntryPoint) = CreateEntryPoint(module, (ResolvedDeclaredRoutineReturnType)entryPointRetTp);
+        var constInt = LLVM.ConstInt(LLVM.Int32Type(), 52, true);
         LLVM.BuildRet(builderEntryPoint, constInt);
    
         
         var (_, builderMain) = CreateMain(module);
-        /*var entryPointOutput = LLVM.BuildCall(builderMain, entryPoint,
-            Array.Empty<LLVMValueRef>(), "THIS IS ENTRY POINT OUTPUT");
-        LLVM.BuildCall(builderMain, printfFunc, new []{entryPointOutput} , "");*/
-
+   
                 
        
-        var constStr = LLVM.BuildGlobalStringPtr(builderMain, "%f\n", "str");
-        LLVM.BuildCall(builderMain, printfFunc, new LLVMValueRef[] { constStr, LLVM.BuildCall(builderMain, entryPoint, new LLVMValueRef[] {  }, "") }, "");
+        
+        LLVM.BuildCall(builderMain, printfFunc, new LLVMValueRef[] { CreateFormatString(builderMain, (ResolvedDeclaredRoutineReturnType)entryPointRetTp), LLVM.BuildCall(builderMain, entryPoint, new LLVMValueRef[] {  }, "") }, "");
         var constInt0 = LLVM.ConstInt(LLVM.Int32Type(), 0, true);
         LLVM.BuildRet(builderMain, constInt0);
         

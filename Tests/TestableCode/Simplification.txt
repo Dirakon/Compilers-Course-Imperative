@@ -1,7 +1,7 @@
 var nol is 0;
 var simplifiedVariable is false xor false xor (true and false);
 
-routine EntryPoint(): real is
+routine EntryPoint(): integer is
     return 52;
 end;
 
