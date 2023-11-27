@@ -1,0 +1,11 @@
+routine ToReal(value: real): real is
+    return value;
+end;
+
+routine ToInt(value: integer): integer is
+    return value;
+end;
+
+routine ToBool(value: boolean): boolean is
+    return value;
+end;

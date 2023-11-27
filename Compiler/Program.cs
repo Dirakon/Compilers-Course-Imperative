@@ -18,11 +18,14 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
             try
             {
                 parser.Parse();
-                var program = parser.RootNode with
-                {
-                    Declarations =
-                    parser.RootNode.Declarations.WithNodesAdded(DummyNodeList.From(builtInDeclarations))
-                };
+                var program = parser.RootNode
+                // TODO: uncomment
+                // with
+                // {
+                //     Declarations =
+                //     parser.RootNode.Declarations.WithNodesAdded(DummyNodeList.From(builtInDeclarations))
+                // }
+                ;
                 var (globalScope, typeCheckingErrors) = program.TypeCheckAndGetGlobalScope();
                 if (typeCheckingErrors is not OperationFailure(var someErrors))
                 {
