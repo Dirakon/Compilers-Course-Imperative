@@ -1,6 +1,9 @@
+using System.Collections.Immutable;
 using CommandLine;
 using Compiler.TypeChecking;
+using Compiler.Utils;
 using LLVMSharp;
+using Compiler.Utils;
 
 namespace Compiler.CodeGeneration;
 
@@ -76,11 +79,63 @@ public static class GenerateBitcode
         var main = LLVM.GetNamedFunction(module, "main");
         LLVM.RunFunction(engine, main, Array.Empty<LLVMGenericValueRef>());
     }
+
+    public static (LLVMTypeRef, Scope) GetLlvmRepresentationOf(IResolvedType type, Scope currentScope)
+    {
+        return type switch
+        {
+            ResolvedBoolType => (LLVMTypeRef.Int1Type(), currentScope),
+            ResolvedIntType => (LLVMTypeRef.Int32Type(), currentScope),
+            ResolvedRealType => (LLVMTypeRef.FloatType(), currentScope),
+            ResolvedArrayType resolvedArrayType => throw new NotImplementedException(),
+            ResolvedRecordType resolvedRecordType => throw new NotImplementedException(),
+            _ => throw new ArgumentOutOfRangeException(nameof(type))
+        };
+    }
+    
+    public static LLVMModuleRef LlvmizeAst(this Scope globalScope)
+    {
+        // TODO: add all user defined type LLVM repr to scope
+        var module = LLVM.ModuleCreateWithName("Hello World");
+        
+        
+        var builder = LLVM.CreateBuilder();
+        
+        foreach (var declaredRoutine in globalScope.DeclaredEntities.Values.OfSubType<IDeclaredEntity, DeclaredRoutine>())
+        {
+            var returnTypeInAst = declaredRoutine.ReturnType.Cast<ResolvedDeclaredRoutineReturnType>().ReturnType;
+            (var returnTypeInLlvm, globalScope) = returnTypeInAst != null
+                ? GetLlvmRepresentationOf(returnTypeInAst, globalScope)
+                : (LLVMTypeRef.VoidType(), globalScope);
+
+            var parametersInAst = declaredRoutine
+                .Arguments.Select(typeAndName => typeAndName.Type)
+                .Cast<ResolvedDeclaredRoutineArgumentType>().ToArray();
+
+            var parametersInLlvm = new List<LLVMTypeRef>();
+            foreach (var parameterTypeInAst in parametersInAst)
+            {
+                (var parameterTypeInLlvm, globalScope) = GetLlvmRepresentationOf(parameterTypeInAst.ArgumentType, globalScope);
+                parametersInLlvm.Add(parameterTypeInLlvm);
+            }
+            
+            var funcType = LLVM.FunctionType(returnTypeInLlvm, parametersInLlvm.ToArray(), false);
+        
+            LLVM.AddFunction(module, declaredRoutine.Identifier, funcType);
+            //var entry = LLVM.AppendBasicBlock(func, "entry");
+        }
+        
+        // TODO: add 
+
+        var entryPoint = LLVM.GetNamedFunction(module, "EntryPoint");
+        return module;
+    }
     
     // TODO: return entrypoint function type + str;
     
-    public static void StartExecution(string outputFilePath, IDeclaredRoutineReturnType entryPointRetTp)
+    public static void StartExecution(string outputFilePath, IDeclaredRoutineReturnType entryPointRetTp, Scope globalScope)
     {
+        LlvmizeAst(globalScope);
         var context = LLVM.ContextCreate();
         var module = LLVM.ModuleCreateWithName("Hello World");
         var printfFunc = DeclarePrintf(module);

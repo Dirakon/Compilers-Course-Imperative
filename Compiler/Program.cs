@@ -34,7 +34,7 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                     if (globalScope.DeclaredEntities.GetValueOrDefault("EntryPoint") is DeclaredRoutine declaredRoutine)
                     {
                     
-                        GenerateBitcode.StartExecution(o.BitCodeFile, declaredRoutine.ReturnType);
+                        GenerateBitcode.StartExecution(o.BitCodeFile, declaredRoutine.ReturnType, globalScope);
                     }
                     else Console.WriteLine("Entry point is not detected");
                     AstVisualizer.VisualizeAst(program, o.AfterAstOutputFile);
