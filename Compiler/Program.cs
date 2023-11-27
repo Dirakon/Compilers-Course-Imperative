@@ -27,6 +27,17 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                 if (typeCheckingErrors is not OperationFailure(var someErrors))
                 {
                     Console.WriteLine("No typechecking errors found!");
+                    AstVisualizer.VisualizeAst(program, o.BeforeAstOutputFile);
+                    program = new Compiler.Program(
+                        program.Declarations.WithNodesTransformed(AstOptimization.ExpressionSimplifier));
+                
+                    if (globalScope.DeclaredEntities.GetValueOrDefault("EntryPoint") is DeclaredRoutine declaredRoutine)
+                    {
+                    
+                        GenerateBitcode.StartExecution(o.BitCodeFile, declaredRoutine.ReturnType);
+                    }
+                    else Console.WriteLine("Entry point is not detected");
+                    AstVisualizer.VisualizeAst(program, o.AfterAstOutputFile);
                 }
                 else
                 {
@@ -44,19 +55,9 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                         Console.WriteLine();
                     }
                 }
-
-                AstVisualizer.VisualizeAst(program, o.BeforeAstOutputFile);
-                program = new Compiler.Program(
-                    program.Declarations.WithNodesTransformed(AstOptimization.ExpressionSimplifier));
                 
-                if (globalScope.DeclaredEntities.GetValueOrDefault("EntryPoint") is DeclaredRoutine declaredRoutine)
-                {
-                    
-                    GenerateBitcode.StartExecution(o.BitCodeFile, declaredRoutine.ReturnType);
-                }
-                else Console.WriteLine("Entry point is not detected");
                 
-                AstVisualizer.VisualizeAst(program, o.AfterAstOutputFile);
+               
             }
             catch (SyntaxErrorException er)
             {
