@@ -1,3 +1,7 @@
 routine EntryPoint(): integer is
-    return 1;
+    return OtherFunc() + OtherFunc() - OtherFunc() - OtherFunc() + OtherFunc() * OtherFunc();
+end;
+
+routine OtherFunc(): integer is
+    return 69;
 end;

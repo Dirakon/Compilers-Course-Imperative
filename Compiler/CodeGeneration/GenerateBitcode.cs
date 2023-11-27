@@ -9,6 +9,8 @@ namespace Compiler.CodeGeneration;
 
 public static class GenerateBitcode
 {
+    private static List<(LLVMTypeRef, IResolvedType)> AllEncounteredTypes = new List<(LLVMTypeRef, IResolvedType)>();
+    
     private static LLVMValueRef CreateExtern(
         LLVMModuleRef module,
         string name,
@@ -80,13 +82,13 @@ public static class GenerateBitcode
         LLVM.RunFunction(engine, main, Array.Empty<LLVMGenericValueRef>());
     }
 
-    public static (LLVMTypeRef, Scope) GetLlvmRepresentationOf(IResolvedType type, Scope currentScope)
+    public static LLVMTypeRef GetLlvmRepresentationOf(IResolvedType type, Scope currentScope)
     {
         return type switch
         {
-            ResolvedBoolType => (LLVMTypeRef.Int1Type(), currentScope),
-            ResolvedIntType => (LLVMTypeRef.Int32Type(), currentScope),
-            ResolvedRealType => (LLVMTypeRef.FloatType(), currentScope),
+            ResolvedBoolType => LLVMTypeRef.Int1Type(),
+            ResolvedIntType => LLVMTypeRef.Int32Type(),
+            ResolvedRealType => LLVMTypeRef.FloatType(),
             ResolvedArrayType resolvedArrayType => throw new NotImplementedException(),
             ResolvedRecordType resolvedRecordType => throw new NotImplementedException(),
             _ => throw new ArgumentOutOfRangeException(nameof(type))
@@ -98,15 +100,14 @@ public static class GenerateBitcode
         // TODO: add all user defined type LLVM repr to scope
         var module = LLVM.ModuleCreateWithName("Hello World");
         
-        
         var builder = LLVM.CreateBuilder();
         
         foreach (var declaredRoutine in globalScope.DeclaredEntities.Values.OfSubType<IDeclaredEntity, DeclaredRoutine>())
         {
             var returnTypeInAst = declaredRoutine.ReturnType.Cast<ResolvedDeclaredRoutineReturnType>().ReturnType;
-            (var returnTypeInLlvm, globalScope) = returnTypeInAst != null
+            var returnTypeInLlvm = returnTypeInAst != null
                 ? GetLlvmRepresentationOf(returnTypeInAst, globalScope)
-                : (LLVMTypeRef.VoidType(), globalScope);
+                : LLVMTypeRef.VoidType();
 
             var parametersInAst = declaredRoutine
                 .Arguments.Select(typeAndName => typeAndName.Type)
@@ -115,7 +116,7 @@ public static class GenerateBitcode
             var parametersInLlvm = new List<LLVMTypeRef>();
             foreach (var parameterTypeInAst in parametersInAst)
             {
-                (var parameterTypeInLlvm, globalScope) = GetLlvmRepresentationOf(parameterTypeInAst.ArgumentType, globalScope);
+                var parameterTypeInLlvm = GetLlvmRepresentationOf(parameterTypeInAst.ArgumentType, globalScope);
                 parametersInLlvm.Add(parameterTypeInLlvm);
             }
             
@@ -125,34 +126,201 @@ public static class GenerateBitcode
             //var entry = LLVM.AppendBasicBlock(func, "entry");
         }
         
-        // TODO: add 
+        // TODO: add all LLVM variables reprs to scope
+        
+        foreach (var declaredRoutine in
+                 globalScope.DeclaredEntities.Values.OfSubType<IDeclaredEntity, DeclaredRoutine>())
+        {
+            VisitRoutineBody(globalScope, module, declaredRoutine, builder);
+        }
 
-        var entryPoint = LLVM.GetNamedFunction(module, "EntryPoint");
+
         return module;
     }
-    
+
+    private static void VisitRoutineBody(Scope functionScope, LLVMModuleRef module, DeclaredRoutine declaredRoutine,
+        LLVMBuilderRef builder)
+    {
+        var function = LLVM.GetNamedFunction(module, declaredRoutine.Identifier);
+        foreach (var ((type, paramIdentifier), i) in declaredRoutine.Arguments.Select((value, index) => (value, index)))
+        {
+            var paramValueRef = LLVM.GetParam(function, (uint)i);
+            // TODO: add all routine arguments to scope as variables
+        }
+
+        var entry = LLVM.AppendBasicBlock(function, "entry");
+        LLVM.PositionBuilderAtEnd(builder, entry);
+        VisitBody(functionScope, declaredRoutine.Body, builder, module);
+    }
+
+    private static void VisitBody(Scope functionScope, INodeList<IBodyElement> body, LLVMBuilderRef builder, LLVMModuleRef module)
+    {
+        foreach (var bodyElement in body)
+        {
+            (functionScope) = bodyElement switch
+            {
+                // Not update scope:
+                Return @return => Visit(@return, functionScope, builder, module),
+                RoutineCall routineCall => throw new NotImplementedException(),
+                ForLoop forLoop => throw new NotImplementedException(),
+                IfStatement ifStatement => throw new NotImplementedException(),
+                Assignment assignment => throw new NotImplementedException(),
+                WhileLoop whileLoop => throw new NotImplementedException(),
+
+                // Update scope:
+                TypeDeclaration typeDeclaration => throw new NotImplementedException(),
+                VariableDeclaration variableDeclaration => throw new NotImplementedException(),
+                _ => throw new ArgumentOutOfRangeException(nameof(bodyElement))
+            };
+        }
+    }
+
+    private static Scope Visit(Return @return, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    {
+        //var returnType = @return.ReturnValue?.TryInferType(currentScope).InferredType;
+        switch (@return.ReturnValue)
+        {
+            case null:
+                LLVM.BuildRetVoid(builder);
+                break;
+            case not null:
+                //var returnTypeInLlvm = GetLlvmRepresentationOf(someReturnType, currentScope);
+
+                var returnValue = Visit(@return.ReturnValue, currentScope, builder, module);
+                LLVM.BuildRet(builder, returnValue);
+
+                break;
+        }
+        //LLVM.BuildRetVoid()
+        return currentScope;
+    }
+
+    private static LLVMValueRef Visit(Expression expression, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    {
+        var currentValue = Visit(expression.First, currentScope, builder, module);
+        foreach (var (opType, relation, _) in expression.Operations)
+        {
+            var nextRelation = Visit(relation, currentScope, builder, module);
+            currentValue = opType switch
+            {
+                RelationOperationType.And => LLVM.BuildAnd(builder, currentValue, nextRelation, ""),
+                RelationOperationType.Or => LLVM.BuildOr(builder, currentValue, nextRelation, ""),
+                RelationOperationType.Xor => LLVM.BuildXor(builder, currentValue, nextRelation, ""),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
+        return currentValue;
+    }
+
+    private static LLVMValueRef Visit(Relation relation, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    {
+        var currentValue = Visit(relation.First, currentScope, builder, module);
+        if (relation.Operation is var (opType, simple, _))
+        {
+            var nextSimple = Visit(simple, currentScope, builder, module);
+            currentValue = opType switch
+            {
+                SimpleOperationType.Less => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLT, currentValue, nextSimple, ""),
+                SimpleOperationType.LessOrEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLE, currentValue, nextSimple, ""),
+                SimpleOperationType.Greater => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSGT, currentValue, nextSimple, ""),
+                SimpleOperationType.GreaterOrEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSGE, currentValue, nextSimple, ""),
+                SimpleOperationType.Equal => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, currentValue, nextSimple, ""),
+                SimpleOperationType.NotEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntNE, currentValue, nextSimple, ""),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
+        return currentValue;
+    }
+
+    private static LLVMValueRef Visit(Simple simple, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    {
+        var currentValue = Visit(simple.First, currentScope, builder, module);
+        foreach (var (opType, summand, _) in simple.Operations)
+        {
+            var nextSummand = Visit(summand, currentScope, builder, module);
+            currentValue = opType switch
+            {
+                SummandOperationType.Plus => LLVM.BuildAdd(builder, currentValue, nextSummand, ""),
+                SummandOperationType.Minus => LLVM.BuildSub(builder, currentValue, nextSummand, ""),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
+        return currentValue;
+    }
+
+    private static LLVMValueRef Visit(Summand summand, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    {
+        var currentValue = Visit(summand.First, currentScope, builder, module);
+        foreach (var (factorOperationType, factor, _) in summand.Operations)
+        {
+            var nextFactor = Visit(factor, currentScope, builder, module);
+            currentValue = factorOperationType switch
+            {
+                FactorOperationType.Multiplication => LLVM.BuildMul(builder, currentValue, nextFactor, ""),
+                FactorOperationType.Division => LLVM.BuildSDiv(builder, currentValue, nextFactor, ""),
+                FactorOperationType.ModularDivision => LLVM.BuildSRem(builder, currentValue, nextFactor, ""),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
+        return currentValue;
+    }
+
+    private static LLVMValueRef Visit(IFactor factor, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    {
+        switch (factor)
+        {
+            case ExpressionFactor expressionFactor:
+                break;
+            case BoolPrimary boolPrimary:
+                break;
+            case IntegerPrimary constInt:
+                return constInt.Literal >= 0
+                    ? LLVM.ConstInt(LLVMTypeRef.Int32Type(), (ulong)constInt.Literal, false)
+                    : LLVM.ConstNeg(LLVM.ConstInt(LLVMTypeRef.Int32Type(), (ulong)(-constInt.Literal), false));
+            case ModifiablePrimary modifiablePrimary:
+                break;
+            case RealPrimary realPrimary:
+                break;
+            case RoutineCall routineCall:
+                var function = LLVM.GetNamedFunction(module, routineCall.RoutineName);
+                var argumentsInLlvm = routineCall.Arguments.Select(arg => Visit(arg, currentScope, builder, module))
+                    .ToArray();
+                var routineCallReturn = LLVM.BuildCall(builder, function, argumentsInLlvm, "");
+                return routineCallReturn;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(factor));
+        }
+        // TODO: other options
+        throw new NotImplementedException();
+    }
+
     // TODO: return entrypoint function type + str;
     
     public static void StartExecution(string outputFilePath, IDeclaredRoutineReturnType entryPointRetTp, Scope globalScope)
     {
-        LlvmizeAst(globalScope);
+        var module = LlvmizeAst(globalScope);
         var context = LLVM.ContextCreate();
-        var module = LLVM.ModuleCreateWithName("Hello World");
+        //var module = LLVM.ModuleCreateWithName("Hello World");
         var printfFunc = DeclarePrintf(module);
         
-        var (entryPoint, builderEntryPoint) = CreateEntryPoint(module, entryPointRetTp.Cast<ResolvedDeclaredRoutineReturnType>());
-        var constInt = LLVM.ConstReal(LLVM.DoubleType(), 52.0);
-        LLVM.BuildRet(builderEntryPoint, constInt);
+        // var (entryPoint, builderEntryPoint) = CreateEntryPoint(module, entryPointRetTp.Cast<ResolvedDeclaredRoutineReturnType>());
+        // var constInt = LLVM.ConstReal(LLVM.DoubleType(), 52.0);
+        // LLVM.BuildRet(builderEntryPoint, constInt);
    
         
         var (_, builderMain) = CreateMain(module);
+        var entryPoint = LLVM.GetNamedFunction(module, "EntryPoint");
         /*var entryPointOutput = LLVM.BuildCall(builderMain, entryPoint,
             Array.Empty<LLVMValueRef>(), "THIS IS ENTRY POINT OUTPUT");
         LLVM.BuildCall(builderMain, printfFunc, new []{entryPointOutput} , "");*/
 
                 
        
-        var constStr = LLVM.BuildGlobalStringPtr(builderMain, "%f\n", "str");
+        var constStr = LLVM.BuildGlobalStringPtr(builderMain, "%d\n", "str");
         LLVM.BuildCall(builderMain, printfFunc, new LLVMValueRef[] { constStr, LLVM.BuildCall(builderMain, entryPoint, new LLVMValueRef[] {  }, "") }, "");
         var constInt0 = LLVM.ConstInt(LLVM.Int32Type(), 0, true);
         LLVM.BuildRet(builderMain, constInt0);
