@@ -38,7 +38,8 @@ public static class TypeChecker
                     globalScope.AddOrOverwrite(
                         routine.Arguments
                             .Select(arg => arg.Type is ResolvedDeclaredRoutineArgumentType(var type)
-                                ? new DeclaredVariable(arg.Name, type, LLVM.ConstInt(LLVMTypeRef.Int1Type(), 1, false))  // TODO: ??
+                                ? new DeclaredVariable(arg.Name, type,
+                                    LLVM.ConstInt(LLVMTypeRef.Int1Type(), 1, false)) // TODO: ??
                                 : null)
                             .NotNull())))
                 .NotNull())));
@@ -91,8 +92,8 @@ public static class TypeChecker
     [Pure]
     public static OperationFailure? GetBadArgumentsProvidedError(
         IDeclaredRoutineArgumentType[] requiredArgumentTypes,
-        IEnumerable<Expression> givenArguments, 
-        CustomLexLocation lexLocation, 
+        IEnumerable<Expression> givenArguments,
+        CustomLexLocation lexLocation,
         Scope scope)
     {
         var givenArgumentsArray = givenArguments.ToArray();
@@ -167,7 +168,8 @@ public static class TypeCheckingAstExtensions
                                 .TypeCheck(
                                     expectedReturnValue,
                                     currentScope.AddOrOverwrite(
-                                        new DeclaredVariable(forLoop.IteratorName, new ResolvedIntType(), LLVM.ConstInt(LLVMTypeRef.Int1Type(), 1, false)))))),
+                                        new DeclaredVariable(forLoop.IteratorName, new ResolvedIntType(),
+                                            LLVM.ConstInt(LLVMTypeRef.Int1Type(), 1, false)))))),
                 IfStatement ifStatement => (currentScope,
                     ifStatement.Condition
                         .TryInferType(currentScope)
@@ -201,13 +203,19 @@ public static class TypeCheckingAstExtensions
                     ({ } someReturnExpression, UnresolvedDeclaredRoutineReturnType) =>
                         someReturnExpression.TryInferType(currentScope).PossibleError,
                     ({ } someReturnValue, ResolvedDeclaredRoutineReturnType(var expectedReturnType)) =>
-                        (expectedReturnType == null
+                        expectedReturnType == null
                             ? new TypeCheckerError(
-                                "Cannot return with type when expecting no type",
-                                new[] { @return.LexLocation }
-                            ).ToFailure()
-                            : null)
-                        .TryAdd(someReturnValue.TryInferType(currentScope).PossibleError),
+                                    "Cannot return with type when expecting no type",
+                                    new[] { @return.LexLocation }
+                                )
+                                .ToFailure()
+                                .TryAdd(someReturnValue.TryInferType(currentScope).PossibleError)
+                            : new TypeInferenceResult(expectedReturnType, null)
+                                .CombineWith(someReturnValue.TryInferType(currentScope),
+                                    (expectedType, receivedType) =>
+                                        receivedType.TryGetWrongTypeError(expectedType, @return.LexLocation)
+                                            .ToTypeInferenceFailure())
+                                .PossibleError,
                     _ => throw new ArgumentOutOfRangeException()
                 }),
                 RoutineCall routineCall => (currentScope,

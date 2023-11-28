@@ -1,7 +1,15 @@
-routine EntryPoint(): boolean is
-    return (OtherFunc() > OtherFunc()) and (69 > 2);
+type myInt is integer;
+
+routine EntryPoint(): myInt is
+        while OtherFunc() < 0 loop 
+            return 96;
+        end;
+        type localIntCantAssignThoNeedVariableDeclaration is myInt;
+        return OtherFunc();
 end;
 
-routine OtherFunc(): integer is
-    return 69;
+type myOtherInt is integer;
+
+routine OtherFunc(): myOtherInt is
+    return 1;
 end;
