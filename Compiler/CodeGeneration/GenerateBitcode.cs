@@ -466,13 +466,13 @@ public static class GenerateBitcode
         };
     }
     
-    private static LLVMValueRef Visit(Simple simple, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    private static (LLVMValueRef, LLVMBuilderRef)  Visit(Simple simple, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
     {
         (var currentValue, _) = Visit(simple.First, currentScope, builder, module);
         foreach (var (opType, summand, _) in simple.Operations)
         {
             var inferredType = simple.TryInferType(currentScope).InferredType;
-            var nextSummand = Visit(summand, currentScope, builder, module);
+            (var nextSummand, builder) = Visit(summand, currentScope, builder, module);
             currentValue = inferredType switch
             {
                 ResolvedIntType => SummandOpeartionForIntegerLLVM(opType, builder, currentValue, nextSummand),
@@ -515,7 +515,7 @@ public static class GenerateBitcode
         foreach (var (factorOperationType, factor, _) in summand.Operations)
         {
             var inferredType = summand.TryInferType(currentScope).InferredType;
-            var nextFactor = Visit(factor, currentScope, builder, module);
+            (var nextFactor, _) = Visit(factor, currentScope, builder, module);
             currentValue = inferredType switch
             {
                 ResolvedIntType => FactorOpeartionForIntegerLLVM(factorOperationType, builder, currentValue, nextFactor),
@@ -527,7 +527,7 @@ public static class GenerateBitcode
         return (currentValue, builder);
     }
     
-    private static LLVMValueRef Visit(IFactor factor, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    private static (LLVMValueRef, LLVMBuilderRef)  Visit(IFactor factor, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
     {
         switch (factor)
         {
@@ -535,9 +535,10 @@ public static class GenerateBitcode
                 return Visit(expressionFactor.Expression, currentScope, builder, module);
                 break;
             case BoolPrimary boolPrimary:
-                return boolPrimary.Value
+                return (boolPrimary.Value
                     ? LLVM.ConstInt(LLVMTypeRef.Int1Type(), 1, false)
-                    : LLVM.ConstInt(LLVMTypeRef.Int1Type(), 0, false);
+                    : LLVM.ConstInt(LLVMTypeRef.Int1Type(), 0, false),
+                        builder);
             case IntegerPrimary constInt:
                 return (constInt.Literal >= 0
                         ? LLVM.ConstInt(LLVMTypeRef.Int32Type(), (ulong)constInt.Literal, false)
@@ -547,7 +548,7 @@ public static class GenerateBitcode
                 throw new NotImplementedException();
                 break;
             case RealPrimary realPrimary:
-                return LLVM.ConstReal(LLVMTypeRef.DoubleType(), realPrimary.Literal);
+                return (LLVM.ConstReal(LLVMTypeRef.DoubleType(), realPrimary.Literal), builder);
             case RoutineCall routineCall:
                 var function = LLVM.GetNamedFunction(module, routineCall.RoutineName);
                 List<LLVMValueRef> argumentsInLlvm = new List<LLVMValueRef>();
