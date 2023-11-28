@@ -12,3 +12,7 @@ routine IsPalindrome(original: integer): boolean is
         return false;
     end;
 end;
+
+routine EntryPoint(): boolean is
+    return IsPalindrome(131) and (IsPalindrome(132) = false); 
+end;

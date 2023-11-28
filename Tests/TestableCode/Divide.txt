@@ -1,3 +1,7 @@
 routine Division(x: integer, y: integer): integer is
     return x / y;
 end;
+
+routine EntryPoint(): boolean is
+    return Division(69, 10) = 6; 
+end;

@@ -9,3 +9,7 @@ routine WhileLoop(n: integer): integer is
     end;
     return temp;
 end;
+
+routine EntryPoint(): boolean is
+    return WhileLoop(4321) = 4; 
+end;
