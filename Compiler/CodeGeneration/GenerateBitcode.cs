@@ -401,9 +401,7 @@ public static class GenerateBitcode
                 throw new NotImplementedException();
                 break;
             case RealPrimary realPrimary:
-                return realPrimary.Literal >= 0
-                    ? LLVM.ConstReal(LLVMTypeRef.DoubleType(), (ulong)realPrimary.Literal)
-                    : LLVM.ConstNeg(LLVM.ConstReal(LLVMTypeRef.DoubleType(), (ulong)(-realPrimary.Literal)));
+                return LLVM.ConstReal(LLVMTypeRef.DoubleType(), realPrimary.Literal);
             case RoutineCall routineCall:
                 var function = LLVM.GetNamedFunction(module, routineCall.RoutineName);
                 var argumentsInLlvm = routineCall.Arguments.Select(arg => Visit(arg, currentScope, builder, module))
