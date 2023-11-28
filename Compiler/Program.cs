@@ -32,12 +32,13 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                     Console.WriteLine("No typechecking errors found!");
                     AstVisualizer.VisualizeAst(program, o.BeforeAstOutputFile);
                     program = new Compiler.Program(
-                        program.Declarations.WithNodesTransformed(AstOptimization.ExpressionSimplifier));
+                        program.Declarations
+                            //.WithNodesTransformed(AstOptimization.ExpressionSimplifier)
+                            );
                 
                     if (globalScope.DeclaredEntities.GetValueOrDefault("EntryPoint") is DeclaredRoutine declaredRoutine)
                     {
-                    
-                        GenerateBitcode.StartExecution(o.BitCodeFile, declaredRoutine.ReturnType, globalScope);
+                        GenerateBitcode.StartExecution(o.BitCodeFile, declaredRoutine.ReturnType, globalScope, program);
                     }
                     else Console.WriteLine("Entry point is not detected");
                     AstVisualizer.VisualizeAst(program, o.AfterAstOutputFile);
