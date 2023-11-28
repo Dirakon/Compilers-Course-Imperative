@@ -195,14 +195,22 @@ public static class GenerateBitcode
         LLVMBuilderRef builder)
     {
         var function = LLVM.GetNamedFunction(module, declaredRoutine.Identifier);
-        foreach (var ((type, paramIdentifier), i) in declaredRoutine.Arguments.Select((value, index) => (value, index)))
-        {
-            var paramValueRef = LLVM.GetParam(function, (uint)i);
-            // TODO: add all routine arguments to scope as variables
-        }
-
         var entry = LLVM.AppendBasicBlock(function, "entry");
         LLVM.PositionBuilderAtEnd(builder, entry);
+        foreach (var ((type, paramIdentifier), i) in declaredRoutine.Arguments.Select((value, index) => (value, index)))
+        {
+            var typeAsResolved = type.Cast<ResolvedDeclaredRoutineArgumentType>().ArgumentType;
+            var paramValueRef = LLVM.GetParam(function, (uint)i);
+            var paramAsVariable = LLVM.BuildAlloca(builder,
+                    GetLlvmRepresentationOf(typeAsResolved, functionScope),
+                    $"{paramIdentifier}");
+            LLVM.BuildStore(builder, paramValueRef, paramAsVariable);
+            functionScope = functionScope.AddOrOverwrite(
+                new DeclaredVariable(paramIdentifier, typeAsResolved, paramAsVariable)
+            );
+
+        }
+
         (var isTerminated, _) = VisitBody(functionScope, declaredRoutine.Body, builder, module, function);
 
         if (declaredRoutine.ReturnType.Cast<ResolvedDeclaredRoutineReturnType>().ReturnType == null)
