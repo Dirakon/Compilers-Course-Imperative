@@ -33,6 +33,7 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                     AstVisualizer.VisualizeAst(program, o.BeforeAstOutputFile);
                     program = new Compiler.Program(
                         program.Declarations
+                            // TODO: uncomment
                             //.WithNodesTransformed(AstOptimization.ExpressionSimplifier)
                             );
                 
