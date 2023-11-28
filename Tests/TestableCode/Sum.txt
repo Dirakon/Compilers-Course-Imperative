@@ -1,7 +1,16 @@
-routine EntryPoint(): boolean is
-    return (OtherFunc() > OtherFunc()) and (69 > 2);
+routine EntryPoint(): integer is
+    if 1 = 1 then
+        if 2 = 1 then
+           return -1;
+        else
+            return 6969;
+        end;
+    else
+       return 2;
+    end;
+    
+    return 21;
 end;
 
-routine OtherFunc(): integer is
-    return 69;
+routine OtherFunc() is
 end;

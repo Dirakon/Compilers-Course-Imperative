@@ -163,21 +163,39 @@ public static class GenerateBitcode
 
         var entry = LLVM.AppendBasicBlock(function, "entry");
         LLVM.PositionBuilderAtEnd(builder, entry);
-        VisitBody(functionScope, declaredRoutine.Body, builder, module);
+        (var isTerminated, _) = VisitBody(functionScope, declaredRoutine.Body, builder, module, function);
+
+        if (declaredRoutine.ReturnType.Cast<ResolvedDeclaredRoutineReturnType>().ReturnType == null)
+        {
+            // Void
+            if (!isTerminated)
+            {
+                LLVM.BuildRetVoid(builder);
+            }
+        }
+        else
+        {
+            // Non-void
+            if (!isTerminated)
+            {
+                throw new Exception($"Routine {declaredRoutine.Identifier} is not terminated!");
+            }
+        }
     }
 
-    private static void VisitBody(Scope functionScope, INodeList<IBodyElement> body, LLVMBuilderRef builder,
-        LLVMModuleRef module)
+    private static (bool IsTerminated, LLVMBuilderRef builder) VisitBody(Scope functionScope,
+        INodeList<IBodyElement> body, LLVMBuilderRef builder,
+        LLVMModuleRef module, LLVMValueRef currentFunction)
     {
         foreach (var bodyElement in body)
         {
-            (functionScope) = bodyElement switch
+            ((functionScope, _), var justTerminated) = bodyElement switch
             {
                 // Not update scope:
-                Return @return => Visit(@return, functionScope, builder, module),
+                Return @return => (Visit(@return, functionScope, builder, module), true),
                 RoutineCall routineCall => throw new NotImplementedException(),
                 ForLoop forLoop => throw new NotImplementedException(),
-                IfStatement ifStatement => throw new NotImplementedException(),
+                IfStatement ifStatement => Visit(ifStatement, functionScope, builder, module, currentFunction),
                 Assignment assignment => throw new NotImplementedException(),
                 WhileLoop whileLoop => throw new NotImplementedException(),
 
@@ -187,10 +205,79 @@ public static class GenerateBitcode
                     throw new NotImplementedException(), // Visit(variableDeclaration),
                 _ => throw new ArgumentOutOfRangeException(nameof(bodyElement))
             };
+            if (justTerminated)
+            {
+                return (true, builder);
+            }
+        }
+
+        return (false, builder);
+    }
+
+    private static ((Scope, LLVMBuilderRef), bool isTerminated) Visit(
+        IfStatement ifStatement,
+        Scope currentScope,
+        LLVMBuilderRef builder,
+        LLVMModuleRef module,
+        LLVMValueRef currentFunction)
+    {
+        var initialScope = currentScope with { };
+
+        (var conditionInLlvm, _) = Visit(ifStatement.Condition, currentScope, builder, module);
+        var exit = LLVM.AppendBasicBlock(currentFunction, "if-end");
+        var ifBlock = LLVM.AppendBasicBlock(currentFunction, "if");
+        var elseBlock = ifStatement.ElseBody == null
+            ? null
+            : (LLVMBasicBlockRef?)LLVM.AppendBasicBlock(currentFunction, "else");
+        var isExitBlockUsed = false;
+        LLVM.BuildCondBr(builder, conditionInLlvm, ifBlock, elseBlock ?? exit);
+        {
+            // then
+            LLVM.PositionBuilderAtEnd(builder, ifBlock);
+            var (isThenTerminated, thenBuilder) =
+                VisitBody(currentScope, ifStatement.ThenBody, builder, module, currentFunction);
+
+            if (!isThenTerminated)
+            {
+                LLVM.BuildBr(thenBuilder, exit);
+            }
+
+            isExitBlockUsed = !isThenTerminated;
+        }
+        if (ifStatement.ElseBody != null && elseBlock != null)
+        {
+            // else
+            LLVM.PositionBuilderAtEnd(builder, elseBlock.Value);
+            var (isElseTerminated, _) = VisitBody(currentScope, ifStatement.ElseBody, builder, module, currentFunction);
+
+            if (!isElseTerminated)
+            {
+                LLVM.BuildBr(builder, exit);
+            }
+
+            isExitBlockUsed = isExitBlockUsed || !isElseTerminated;
+        }
+        else
+        {
+            isExitBlockUsed = true;
+        }
+
+        if (isExitBlockUsed)
+        {
+            LLVM.PositionBuilderAtEnd(builder, exit);
+            return ((initialScope, builder), false);
+        }
+        else
+        {
+            // Means both branches terminate
+            LLVM.RemoveBasicBlockFromParent(exit);
+            return ((initialScope, builder), true);
         }
     }
 
-    private static Scope Visit(Return @return, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+
+    private static (Scope, LLVMBuilderRef) Visit(Return @return, Scope currentScope, LLVMBuilderRef builder,
+        LLVMModuleRef module)
     {
         switch (@return.ReturnValue)
         {
@@ -198,21 +285,22 @@ public static class GenerateBitcode
                 LLVM.BuildRetVoid(builder);
                 break;
             case not null:
-                var returnValue = Visit(@return.ReturnValue, currentScope, builder, module);
+                (var returnValue, _) = Visit(@return.ReturnValue, currentScope, builder, module);
                 LLVM.BuildRet(builder, returnValue);
                 break;
         }
 
-        return currentScope;
+        return (currentScope, builder);
     }
 
-    private static LLVMValueRef Visit(Expression expression, Scope currentScope, LLVMBuilderRef builder,
+    private static (LLVMValueRef, LLVMBuilderRef) Visit(Expression expression, Scope currentScope,
+        LLVMBuilderRef builder,
         LLVMModuleRef module)
     {
-        var currentValue = Visit(expression.First, currentScope, builder, module);
+        (var currentValue, _) = Visit(expression.First, currentScope, builder, module);
         foreach (var (opType, relation, _) in expression.Operations)
         {
-            var nextRelation = Visit(relation, currentScope, builder, module);
+            (var nextRelation, _) = Visit(relation, currentScope, builder, module);
             currentValue = opType switch
             {
                 RelationOperationType.And => LLVM.BuildAnd(builder, currentValue, nextRelation, ""),
@@ -222,16 +310,16 @@ public static class GenerateBitcode
             };
         }
 
-        return currentValue;
+        return (currentValue, builder);
     }
 
-    private static LLVMValueRef Visit(Relation relation, Scope currentScope, LLVMBuilderRef builder,
+    private static (LLVMValueRef, LLVMBuilderRef) Visit(Relation relation, Scope currentScope, LLVMBuilderRef builder,
         LLVMModuleRef module)
     {
-        var currentValue = Visit(relation.First, currentScope, builder, module);
+        (var currentValue, _) = Visit(relation.First, currentScope, builder, module);
         if (relation.Operation is var (opType, simple, _))
         {
-            var nextSimple = Visit(simple, currentScope, builder, module);
+            (var nextSimple, _) = Visit(simple, currentScope, builder, module);
             currentValue = opType switch
             {
                 SimpleOperationType.Less => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLT, currentValue,
@@ -250,15 +338,16 @@ public static class GenerateBitcode
             };
         }
 
-        return currentValue;
+        return (currentValue, builder);
     }
 
-    private static LLVMValueRef Visit(Simple simple, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    private static (LLVMValueRef, LLVMBuilderRef) Visit(Simple simple, Scope currentScope, LLVMBuilderRef builder,
+        LLVMModuleRef module)
     {
-        var currentValue = Visit(simple.First, currentScope, builder, module);
+        (var currentValue, _) = Visit(simple.First, currentScope, builder, module);
         foreach (var (opType, summand, _) in simple.Operations)
         {
-            var nextSummand = Visit(summand, currentScope, builder, module);
+            (var nextSummand, _) = Visit(summand, currentScope, builder, module);
             currentValue = opType switch
             {
                 SummandOperationType.Plus => LLVM.BuildAdd(builder, currentValue, nextSummand, ""),
@@ -267,15 +356,16 @@ public static class GenerateBitcode
             };
         }
 
-        return currentValue;
+        return (currentValue, builder);
     }
 
-    private static LLVMValueRef Visit(Summand summand, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    private static (LLVMValueRef, LLVMBuilderRef) Visit(Summand summand, Scope currentScope, LLVMBuilderRef builder,
+        LLVMModuleRef module)
     {
-        var currentValue = Visit(summand.First, currentScope, builder, module);
+        (var currentValue, _) = Visit(summand.First, currentScope, builder, module);
         foreach (var (factorOperationType, factor, _) in summand.Operations)
         {
-            var nextFactor = Visit(factor, currentScope, builder, module);
+            (var nextFactor, _) = Visit(factor, currentScope, builder, module);
             currentValue = factorOperationType switch
             {
                 FactorOperationType.Multiplication => LLVM.BuildMul(builder, currentValue, nextFactor, ""),
@@ -285,10 +375,11 @@ public static class GenerateBitcode
             };
         }
 
-        return currentValue;
+        return (currentValue, builder);
     }
 
-    private static LLVMValueRef Visit(IFactor factor, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
+    private static (LLVMValueRef, LLVMBuilderRef) Visit(IFactor factor, Scope currentScope, LLVMBuilderRef builder,
+        LLVMModuleRef module)
     {
         switch (factor)
         {
@@ -299,9 +390,10 @@ public static class GenerateBitcode
                 throw new NotImplementedException();
                 break;
             case IntegerPrimary constInt:
-                return constInt.Literal >= 0
-                    ? LLVM.ConstInt(LLVMTypeRef.Int32Type(), (ulong)constInt.Literal, false)
-                    : LLVM.ConstNeg(LLVM.ConstInt(LLVMTypeRef.Int32Type(), (ulong)(-constInt.Literal), false));
+                return (constInt.Literal >= 0
+                        ? LLVM.ConstInt(LLVMTypeRef.Int32Type(), (ulong)constInt.Literal, false)
+                        : LLVM.ConstNeg(LLVM.ConstInt(LLVMTypeRef.Int32Type(), (ulong)(-constInt.Literal), false)),
+                    builder);
             case ModifiablePrimary modifiablePrimary:
                 throw new NotImplementedException();
                 break;
@@ -310,10 +402,15 @@ public static class GenerateBitcode
                 break;
             case RoutineCall routineCall:
                 var function = LLVM.GetNamedFunction(module, routineCall.RoutineName);
-                var argumentsInLlvm = routineCall.Arguments.Select(arg => Visit(arg, currentScope, builder, module))
-                    .ToArray();
-                var routineCallReturn = LLVM.BuildCall(builder, function, argumentsInLlvm, "");
-                return routineCallReturn;
+                List<LLVMValueRef> argumentsInLlvm = new List<LLVMValueRef>();
+                foreach (var arg in routineCall.Arguments)
+                {
+                    (var argInLlvm, _) = Visit(arg, currentScope, builder, module);
+                    argumentsInLlvm.Add(argInLlvm);
+                }
+
+                var routineCallReturn = LLVM.BuildCall(builder, function, argumentsInLlvm.ToArray(), "");
+                return (routineCallReturn, builder);
             default:
                 throw new ArgumentOutOfRangeException(nameof(factor));
         }
