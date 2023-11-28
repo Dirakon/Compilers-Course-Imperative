@@ -9,8 +9,6 @@ namespace Compiler.CodeGeneration;
 
 public static class GenerateBitcode
 {
-    private static List<(LLVMTypeRef, IResolvedType)> AllEncounteredTypes = new List<(LLVMTypeRef, IResolvedType)>();
-
     private static LLVMValueRef CreateExtern(
         LLVMModuleRef module,
         string name,
@@ -924,6 +922,13 @@ public static class GenerateBitcode
             case RealPrimary realPrimary:
                 return (LLVM.ConstReal(LLVMTypeRef.DoubleType(), realPrimary.Literal), builder);
             case RoutineCall routineCall:
+                if (routineCall.RoutineName == "LengthOf")
+                {
+                    var singleArrayExpression = routineCall.Arguments.First();
+                    (var array, _) = Visit(singleArrayExpression, currentScope, builder, module);
+                    return (LLVM.BuildLoad(builder, LLVM.BuildStructGEP(builder, array, 0, "array size"), "array size"), builder);
+                }
+                
                 var functionInLlvm = LLVM.GetNamedFunction(module, routineCall.RoutineName);
                 var functionInAst = currentScope.DeclaredEntities[routineCall.RoutineName].Cast<DeclaredRoutine>();
                 List<LLVMValueRef> argumentsInLlvm = new List<LLVMValueRef>();
