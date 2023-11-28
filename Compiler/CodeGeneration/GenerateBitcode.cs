@@ -197,7 +197,7 @@ public static class GenerateBitcode
                 ForLoop forLoop => throw new NotImplementedException(),
                 IfStatement ifStatement => Visit(ifStatement, functionScope, builder, module, currentFunction),
                 Assignment assignment => throw new NotImplementedException(),
-                WhileLoop whileLoop => throw new NotImplementedException(),
+                WhileLoop whileLoop => Visit(whileLoop, functionScope, builder, module, currentFunction),
 
                 // Update scope:
                 TypeDeclaration typeDeclaration => throw new NotImplementedException(),
@@ -212,6 +212,37 @@ public static class GenerateBitcode
         }
 
         return (false, builder);
+    }
+
+    private static ((Scope, LLVMBuilderRef), bool isTerminated) Visit(
+        WhileLoop whileLoop,
+        Scope currentScope,
+        LLVMBuilderRef builder,
+        LLVMModuleRef module,
+        LLVMValueRef currentFunction)
+    {
+        var initialScope = currentScope with { };
+
+        var whileCondBlock = LLVM.AppendBasicBlock(currentFunction, "while-cond");
+        var exitBlock = LLVM.AppendBasicBlock(currentFunction, "while-end");
+        LLVM.BuildBr(builder, whileCondBlock);
+        LLVM.PositionBuilderAtEnd(builder, whileCondBlock);
+
+        (var conditionInLlvm, _) = Visit(whileLoop.Condition, currentScope, builder, module);
+
+        var whileBodyBlock = LLVM.AppendBasicBlock(currentFunction, "while-body");
+        LLVM.BuildCondBr(builder, conditionInLlvm, whileBodyBlock, exitBlock);
+
+        LLVM.PositionBuilderAtEnd(builder, whileBodyBlock);
+
+        (var isWhileBodyTerminated, _) = VisitBody(currentScope, whileLoop.Body, builder, module, currentFunction);
+        if (!isWhileBodyTerminated)
+        {
+            LLVM.BuildBr(builder, whileCondBlock);
+        }
+
+        LLVM.PositionBuilderAtEnd(builder, exitBlock);
+        return ((initialScope, builder), false);
     }
 
     private static ((Scope, LLVMBuilderRef), bool isTerminated) Visit(
