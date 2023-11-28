@@ -115,6 +115,15 @@ public static class GenerateBitcode
 
         var builder = LLVM.CreateBuilder();
 
+        foreach (var declaredType in
+                 globalScope.DeclaredEntities.Values.OfSubType<IDeclaredEntity, DeclaredType>().ToArray())
+        {
+            globalScope = globalScope.AddOrOverwrite(declaredType with
+            {
+                LlvmType = GetLlvmRepresentationOf(declaredType.Type, globalScope)
+            });
+        }
+
         foreach (var declaredRoutine in
                  globalScope.DeclaredEntities.Values.OfSubType<IDeclaredEntity, DeclaredRoutine>())
         {
@@ -178,7 +187,8 @@ public static class GenerateBitcode
             // Non-void
             if (!isTerminated)
             {
-                throw new Exception($"Routine {declaredRoutine.Identifier} is not terminated!");
+                throw new Exception(
+                    $"Routine {declaredRoutine.Identifier} is not terminated in one of the execution paths!");
             }
         }
     }
@@ -200,7 +210,7 @@ public static class GenerateBitcode
                 WhileLoop whileLoop => Visit(whileLoop, functionScope, builder, module, currentFunction),
 
                 // Update scope:
-                TypeDeclaration typeDeclaration => throw new NotImplementedException(),
+                TypeDeclaration typeDeclaration => (Visit(typeDeclaration, functionScope, builder, module), false),
                 VariableDeclaration variableDeclaration =>
                     throw new NotImplementedException(), // Visit(variableDeclaration),
                 _ => throw new ArgumentOutOfRangeException(nameof(bodyElement))
@@ -212,6 +222,21 @@ public static class GenerateBitcode
         }
 
         return (false, builder);
+    }
+
+    private static (Scope functionScope, LLVMBuilderRef builder) Visit(
+        TypeDeclaration typeDeclaration,
+        Scope functionScope,
+        LLVMBuilderRef builder,
+        LLVMModuleRef module)
+    {
+        // Not null because we type-checked before
+        var declaredEntity = typeDeclaration.AsDeclaredEntity(functionScope).DeclaredEntity!;
+        return (functionScope.AddOrOverwrite(
+            declaredEntity with
+            {
+                LlvmType = GetLlvmRepresentationOf(declaredEntity.Type, functionScope)
+            }), builder);
     }
 
     private static ((Scope, LLVMBuilderRef), bool isTerminated) Visit(
@@ -232,7 +257,6 @@ public static class GenerateBitcode
 
         var whileBodyBlock = LLVM.AppendBasicBlock(currentFunction, "while-body");
         LLVM.BuildCondBr(builder, conditionInLlvm, whileBodyBlock, exitBlock);
-
         LLVM.PositionBuilderAtEnd(builder, whileBodyBlock);
 
         (var isWhileBodyTerminated, _) = VisitBody(currentScope, whileLoop.Body, builder, module, currentFunction);

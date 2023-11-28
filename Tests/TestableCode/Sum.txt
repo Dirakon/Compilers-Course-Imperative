@@ -1,10 +1,15 @@
-routine EntryPoint(): integer is
-        while OtherFunc() > 0 loop 
+type myInt is integer;
+
+routine EntryPoint(): myInt is
+        while OtherFunc() < 0 loop 
             return 96;
         end;
-    return 69;
+        type localIntCantAssignThoNeedVariableDeclaration is myInt;
+        return OtherFunc();
 end;
 
-routine OtherFunc(): integer is
+type myOtherInt is integer;
+
+routine OtherFunc(): myOtherInt is
     return 1;
 end;
