@@ -101,7 +101,7 @@ public static class GenerateBitcode
         {
             ResolvedBoolType => LLVMTypeRef.Int1Type(),
             ResolvedIntType => LLVMTypeRef.Int32Type(),
-            ResolvedRealType => LLVMTypeRef.FloatType(),
+            ResolvedRealType => LLVMTypeRef.DoubleType(),
             ResolvedArrayType resolvedArrayType => throw new NotImplementedException(),
             ResolvedRecordType resolvedRecordType => throw new NotImplementedException(),
             _ => throw new ArgumentOutOfRangeException(nameof(type))
@@ -367,6 +367,62 @@ public static class GenerateBitcode
 
         return (currentValue, builder);
     }
+    
+
+    private static LLVMValueRef SimpleOpeartionForIntegerLLVM(SimpleOperationType operationType, LLVMBuilderRef builder,
+        LLVMValueRef curr, LLVMValueRef next)
+    {
+        return operationType switch
+        {
+            SimpleOperationType.Less => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLT, curr,
+                next, ""),
+            SimpleOperationType.LessOrEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLE, curr,
+                next, ""),
+            SimpleOperationType.Greater => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSGT, curr,
+                next, ""),
+            SimpleOperationType.GreaterOrEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSGE, curr,
+                next, ""),
+            SimpleOperationType.Equal => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, curr,
+                next, ""),
+            SimpleOperationType.NotEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntNE, curr,
+                next, ""),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+    
+    private static LLVMValueRef SimpleOpeartionForRealLLVM(SimpleOperationType operationType, LLVMBuilderRef builder,
+        LLVMValueRef curr, LLVMValueRef next)
+    {
+        return operationType switch
+        {
+            SimpleOperationType.Less => LLVM.BuildFCmp(builder, LLVMRealPredicate.LLVMRealULT, curr,
+                next, ""),
+            SimpleOperationType.LessOrEqual => LLVM.BuildFCmp(builder, LLVMRealPredicate.LLVMRealULE, curr,
+                next, ""),
+            SimpleOperationType.Greater => LLVM.BuildFCmp(builder, LLVMRealPredicate.LLVMRealUGT, curr,
+                next, ""),
+            SimpleOperationType.GreaterOrEqual => LLVM.BuildFCmp(builder, LLVMRealPredicate.LLVMRealUGE, curr,
+                next, ""),
+            SimpleOperationType.Equal => LLVM.BuildFCmp(builder, LLVMRealPredicate.LLVMRealUEQ, curr,
+                next, ""),
+            SimpleOperationType.NotEqual => LLVM.BuildFCmp(builder, LLVMRealPredicate.LLVMRealUNE, curr,
+                next, ""),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+    
+    private static LLVMValueRef SimpleOpeartionForBooleanLLVM(SimpleOperationType operationType, LLVMBuilderRef builder,
+        LLVMValueRef curr, LLVMValueRef next)
+    {
+        return operationType switch
+        {
+            SimpleOperationType.Equal => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, curr,
+                next, ""),
+            SimpleOperationType.NotEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntNE, curr,
+                next, ""),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
 
     private static (LLVMValueRef, LLVMBuilderRef) Visit(Relation relation, Scope currentScope, LLVMBuilderRef builder,
         LLVMModuleRef module)
@@ -374,21 +430,13 @@ public static class GenerateBitcode
         (var currentValue, _) = Visit(relation.First, currentScope, builder, module);
         if (relation.Operation is var (opType, simple, _))
         {
+            var inferredType = simple.TryInferType(currentScope).InferredType;
             (var nextSimple, _) = Visit(simple, currentScope, builder, module);
-            currentValue = opType switch
+            currentValue = inferredType switch
             {
-                SimpleOperationType.Less => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLT, currentValue,
-                    nextSimple, ""),
-                SimpleOperationType.LessOrEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLE, currentValue,
-                    nextSimple, ""),
-                SimpleOperationType.Greater => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSGT, currentValue,
-                    nextSimple, ""),
-                SimpleOperationType.GreaterOrEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSGE, currentValue,
-                    nextSimple, ""),
-                SimpleOperationType.Equal => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, currentValue,
-                    nextSimple, ""),
-                SimpleOperationType.NotEqual => LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntNE, currentValue,
-                    nextSimple, ""),
+                ResolvedIntType => SimpleOpeartionForIntegerLLVM(opType, builder, currentValue, nextSimple),
+                ResolvedBoolType => SimpleOpeartionForBooleanLLVM(opType, builder, currentValue, nextSimple),
+                ResolvedRealType => SimpleOpeartionForRealLLVM(opType, builder, currentValue, nextSimple),
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
@@ -396,22 +444,68 @@ public static class GenerateBitcode
         return (currentValue, builder);
     }
 
-    private static (LLVMValueRef, LLVMBuilderRef) Visit(Simple simple, Scope currentScope, LLVMBuilderRef builder,
-        LLVMModuleRef module)
+    private static LLVMValueRef SummandOpeartionForRealLLVM(SummandOperationType operationType, LLVMBuilderRef builder,
+        LLVMValueRef curr, LLVMValueRef next)
+    {
+        return operationType switch
+        {
+            SummandOperationType.Plus => LLVM.BuildFAdd(builder, curr, next, ""),
+            SummandOperationType.Minus => LLVM.BuildFSub(builder, curr, next, ""),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+    
+    private static LLVMValueRef SummandOpeartionForIntegerLLVM(SummandOperationType operationType, LLVMBuilderRef builder,
+        LLVMValueRef curr, LLVMValueRef next)
+    {
+        return operationType switch
+        {
+            SummandOperationType.Plus => LLVM.BuildAdd(builder, curr, next, ""),
+            SummandOperationType.Minus => LLVM.BuildSub(builder, curr, next, ""),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+    
+    private static LLVMValueRef Visit(Simple simple, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
     {
         (var currentValue, _) = Visit(simple.First, currentScope, builder, module);
         foreach (var (opType, summand, _) in simple.Operations)
         {
-            (var nextSummand, _) = Visit(summand, currentScope, builder, module);
-            currentValue = opType switch
+            var inferredType = simple.TryInferType(currentScope).InferredType;
+            var nextSummand = Visit(summand, currentScope, builder, module);
+            currentValue = inferredType switch
             {
-                SummandOperationType.Plus => LLVM.BuildAdd(builder, currentValue, nextSummand, ""),
-                SummandOperationType.Minus => LLVM.BuildSub(builder, currentValue, nextSummand, ""),
+                ResolvedIntType => SummandOpeartionForIntegerLLVM(opType, builder, currentValue, nextSummand),
+                ResolvedRealType => SummandOpeartionForRealLLVM(opType, builder, currentValue, nextSummand),
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
 
         return (currentValue, builder);
+    }
+    
+    private static LLVMValueRef FactorOpeartionForIntegerLLVM(FactorOperationType operationType, LLVMBuilderRef builder,
+        LLVMValueRef curr, LLVMValueRef next)
+    {
+        return operationType switch
+        {
+            FactorOperationType.Multiplication => LLVM.BuildMul(builder, curr, next, ""),
+            FactorOperationType.Division => LLVM.BuildSDiv(builder, curr, next, ""),
+            FactorOperationType.ModularDivision => LLVM.BuildSRem(builder, curr, next, ""),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+    
+    private static LLVMValueRef FactorOpeartionForRealLLVM(FactorOperationType operationType, LLVMBuilderRef builder,
+        LLVMValueRef curr, LLVMValueRef next)
+    {
+        return operationType switch
+        {
+            FactorOperationType.Multiplication => LLVM.BuildFMul(builder, curr, next, ""),
+            FactorOperationType.Division => LLVM.BuildFDiv(builder, curr, next, ""),
+            FactorOperationType.ModularDivision => LLVM.BuildFRem(builder, curr, next, ""),
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 
     private static (LLVMValueRef, LLVMBuilderRef) Visit(Summand summand, Scope currentScope, LLVMBuilderRef builder,
@@ -420,21 +514,20 @@ public static class GenerateBitcode
         (var currentValue, _) = Visit(summand.First, currentScope, builder, module);
         foreach (var (factorOperationType, factor, _) in summand.Operations)
         {
-            (var nextFactor, _) = Visit(factor, currentScope, builder, module);
-            currentValue = factorOperationType switch
+            var inferredType = summand.TryInferType(currentScope).InferredType;
+            var nextFactor = Visit(factor, currentScope, builder, module);
+            currentValue = inferredType switch
             {
-                FactorOperationType.Multiplication => LLVM.BuildMul(builder, currentValue, nextFactor, ""),
-                FactorOperationType.Division => LLVM.BuildSDiv(builder, currentValue, nextFactor, ""),
-                FactorOperationType.ModularDivision => LLVM.BuildSRem(builder, currentValue, nextFactor, ""),
+                ResolvedIntType => FactorOpeartionForIntegerLLVM(factorOperationType, builder, currentValue, nextFactor),
+                ResolvedRealType => FactorOpeartionForRealLLVM(factorOperationType, builder, currentValue, nextFactor),
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
 
         return (currentValue, builder);
     }
-
-    private static (LLVMValueRef, LLVMBuilderRef) Visit(IFactor factor, Scope currentScope, LLVMBuilderRef builder,
-        LLVMModuleRef module)
+    
+    private static LLVMValueRef Visit(IFactor factor, Scope currentScope, LLVMBuilderRef builder, LLVMModuleRef module)
     {
         switch (factor)
         {
@@ -442,8 +535,9 @@ public static class GenerateBitcode
                 return Visit(expressionFactor.Expression, currentScope, builder, module);
                 break;
             case BoolPrimary boolPrimary:
-                throw new NotImplementedException();
-                break;
+                return boolPrimary.Value
+                    ? LLVM.ConstInt(LLVMTypeRef.Int1Type(), 1, false)
+                    : LLVM.ConstInt(LLVMTypeRef.Int1Type(), 0, false);
             case IntegerPrimary constInt:
                 return (constInt.Literal >= 0
                         ? LLVM.ConstInt(LLVMTypeRef.Int32Type(), (ulong)constInt.Literal, false)
@@ -453,8 +547,7 @@ public static class GenerateBitcode
                 throw new NotImplementedException();
                 break;
             case RealPrimary realPrimary:
-                throw new NotImplementedException();
-                break;
+                return LLVM.ConstReal(LLVMTypeRef.DoubleType(), realPrimary.Literal);
             case RoutineCall routineCall:
                 var function = LLVM.GetNamedFunction(module, routineCall.RoutineName);
                 List<LLVMValueRef> argumentsInLlvm = new List<LLVMValueRef>();
