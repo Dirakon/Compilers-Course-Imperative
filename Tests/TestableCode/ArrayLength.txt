@@ -1,0 +1,13 @@
+routine EntryPoint(): boolean is
+    var someArray5: array [5] integer;
+    var someArray7: array [7] integer;
+    
+    return (LengthOf(someArray5) = 5) and 
+        (LengthOf(someArray7) = 7) and
+        (LenghtOfTest(someArray5) = 5) and
+        (LenghtOfTest(someArray7) = 7);
+end;
+
+routine LenghtOfTest(someArray: array [] integer): integer is
+    return LengthOf(someArray);
+end;

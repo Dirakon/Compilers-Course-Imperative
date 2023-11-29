@@ -219,29 +219,47 @@ public static class TypeCheckingAstExtensions
                     _ => throw new ArgumentOutOfRangeException()
                 }),
                 RoutineCall routineCall => (currentScope,
-                    currentScope.TryGetRoutine(routineCall.RoutineName, routineCall.LexLocation) switch
-                    {
-                        ({ } declaredRoutine, var errors) =>
-                            errors
-                                .TryAdd(
-                                    TypeChecker.GetBadArgumentsProvidedError(
-                                        declaredRoutine.Arguments.Select(arg => arg.Type).ToArray(),
-                                        routineCall.Arguments,
-                                        routineCall.LexLocation, currentScope)),
-                        (null, var errors) =>
-                            errors
-                                .TryAdd(
-                                    OperationFailure.CombineErrors(
-                                        routineCall.Arguments
-                                            .Select(arg => arg.TryInferType(currentScope).PossibleError)
-                                            .NotNull()))
-                    }),
+                    routineCall.RoutineName == "LengthOf"
+                        ? GetLengthOfSpecificErrors(routineCall, scope)
+                        : currentScope.TryGetRoutine(routineCall.RoutineName, routineCall.LexLocation) switch
+                        {
+                            ({ } declaredRoutine, var errors) =>
+                                errors
+                                    .TryAdd(
+                                        TypeChecker.GetBadArgumentsProvidedError(
+                                            declaredRoutine.Arguments.Select(arg => arg.Type).ToArray(),
+                                            routineCall.Arguments,
+                                            routineCall.LexLocation, currentScope)),
+                            (null, var errors) =>
+                                errors
+                                    .TryAdd(
+                                        OperationFailure.CombineErrors(
+                                            routineCall.Arguments
+                                                .Select(arg => arg.TryInferType(currentScope).PossibleError)
+                                                .NotNull()))
+                        }),
                 _ => throw new ArgumentOutOfRangeException(nameof(bodyElement))
             };
             possibleFailure = possibleFailure.TryAdd(newPossibleFailure);
         }
 
         return possibleFailure;
+    }
+
+    public static OperationFailure? GetLengthOfSpecificErrors(RoutineCall routineCall, Scope scope)
+    {
+        if (routineCall.Arguments.ToList() is not [var singleExpression])
+        {
+            return new TypeCheckerError("LengthOf has to have exactly one argument", new[] { routineCall.LexLocation })
+                .ToFailure();
+        }
+
+        return singleExpression.TryInferType(scope)
+            .AddErrorOnSuccess(type => type is ResolvedArrayType
+                ? null
+                : new TypeCheckerError("LengthOf has to take array as argument", new[] { routineCall.LexLocation })
+                    .ToFailure())
+            .PossibleError;
     }
 
     [Pure]

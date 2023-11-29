@@ -164,34 +164,37 @@ public static class TypeInference
             RealPrimary => new TypeInferenceResult(new ResolvedRealType(), null),
             ModifiablePrimary modifiablePrimary => modifiablePrimary.TryInferModifiablePrimaryType(scope),
             RoutineCall routineCall =>
-                scope.TryGetRoutine(routineCall.RoutineName, routineCall.LexLocation) switch
-                {
-                    ({ ReturnType: ResolvedDeclaredRoutineReturnType({ } someType) } declaredRoutine, var errors) =>
-                        new TypeInferenceResult(someType, null)
-                            .AppendError(
-                                TypeChecker.GetBadArgumentsProvidedError(
-                                    declaredRoutine.Arguments.Select(arg => arg.Type).ToArray(),
-                                    routineCall.Arguments,
-                                    routineCall.LexLocation, scope))
-                            .PrependError(errors),
-                    ({ } declaredRoutine, var errors) =>
-                        new TypeCheckerError(
-                                $"Usage of routine without return {routineCall.RoutineName} in expression",
-                                new[] { routineCall.LexLocation })
-                            .ToTypeInferenceFailure()
-                            .AppendError(
-                                TypeChecker.GetBadArgumentsProvidedError(
-                                    declaredRoutine.Arguments.Select(arg => arg.Type).ToArray(),
-                                    routineCall.Arguments,
-                                    routineCall.LexLocation, scope))
-                            .PrependError(errors),
-                    (null, var errors) =>
-                        errors.ToTypeInferenceFailure()
-                            .AppendError(OperationFailure.CombineErrors(
-                                routineCall.Arguments
-                                    .Select(arg => arg.TryInferType(scope).PossibleError)
-                                    .NotNull()))
-                },
+                routineCall.RoutineName == "LengthOf"
+                    ? new TypeInferenceResult(new ResolvedIntType(),
+                        TypeCheckingAstExtensions.GetLengthOfSpecificErrors(routineCall, scope))
+                    : scope.TryGetRoutine(routineCall.RoutineName, routineCall.LexLocation) switch
+                    {
+                        ({ ReturnType: ResolvedDeclaredRoutineReturnType({ } someType) } declaredRoutine, var errors) =>
+                            new TypeInferenceResult(someType, null)
+                                .AppendError(
+                                    TypeChecker.GetBadArgumentsProvidedError(
+                                        declaredRoutine.Arguments.Select(arg => arg.Type).ToArray(),
+                                        routineCall.Arguments,
+                                        routineCall.LexLocation, scope))
+                                .PrependError(errors),
+                        ({ } declaredRoutine, var errors) =>
+                            new TypeCheckerError(
+                                    $"Usage of routine without return {routineCall.RoutineName} in expression",
+                                    new[] { routineCall.LexLocation })
+                                .ToTypeInferenceFailure()
+                                .AppendError(
+                                    TypeChecker.GetBadArgumentsProvidedError(
+                                        declaredRoutine.Arguments.Select(arg => arg.Type).ToArray(),
+                                        routineCall.Arguments,
+                                        routineCall.LexLocation, scope))
+                                .PrependError(errors),
+                        (null, var errors) =>
+                            errors.ToTypeInferenceFailure()
+                                .AppendError(OperationFailure.CombineErrors(
+                                    routineCall.Arguments
+                                        .Select(arg => arg.TryInferType(scope).PossibleError)
+                                        .NotNull()))
+                    },
             _ => throw new ArgumentOutOfRangeException(nameof(factor))
         };
 

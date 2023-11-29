@@ -1,17 +1,21 @@
 routine EntryPoint(): boolean is 
     var arr1: array [10] integer;
     var arr2: array [10] integer;
+    
     for i in 1..10 loop
         arr1[i] := i;
     end;
+    
     for i in reverse 1..10 loop
         arr2[i] := i;
     end;
     
+    BubbleSort(arr2);
+    
     return CheckEqual(arr1, arr2);
 end;
 
-routine BubbleSort(beforeArray: array [] integer, afterArray: array [] integer ) is
+routine BubbleSort( beforeArray: array [] integer ) is
     
     var swapped: boolean;
     var temp: integer;
