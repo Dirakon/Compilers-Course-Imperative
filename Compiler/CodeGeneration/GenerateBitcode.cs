@@ -179,7 +179,7 @@ public static class GenerateBitcode
             {
                 (globalScope, _) = Visit(globalVariableDeclaration, globalScope, builder, module, useGlobal: true);
             }
-
+            
             LLVM.BuildRetVoid(builder);
         }
         foreach (var declaredRoutine in
@@ -440,10 +440,16 @@ public static class GenerateBitcode
                 LLVMValueRef variable;
                 if (useGlobal)
                 {
-                    // TODO: fix globals
-                    var thing = LLVM.AddGlobal(module, inferredTypeInLlvm, $"global {variableDeclaration.Name}");
-                    //thing.SetLinkage(LLVMLinkage.);
-                    variable = LLVM.GetNamedGlobal(module, $"global {variableDeclaration.Name}");
+                    
+                    // var thing = LLVM.AddGlobal(module, inferredTypeInLlvm, $"global {variableDeclaration.Name}");
+                    // var initialValue = LLVM.ConstInt(inferredTypeInLlvm, 0,  false);
+                    // variable = useGlobal
+                    //     ? LLVM.AddGlobal(module, inferredTypeInLlvm, $"global {variableDeclaration.Name}")
+                    //     : LLVM.BuildAlloca(builder, inferredTypeInLlvm, $"allocating {variableDeclaration.Name}");
+                    variable = LLVM.AddGlobal(module, inferredTypeInLlvm, $"global {variableDeclaration.Name}");
+                    var initialValue = LLVM.ConstInt(inferredTypeInLlvm, 0, false);
+                    LLVM.SetInitializer(variable, initialValue);
+
                 }
                 else
                     variable = LLVM.BuildAlloca(builder, inferredTypeInLlvm, $"allocating {variableDeclaration.Name}");
@@ -467,10 +473,18 @@ public static class GenerateBitcode
                 var resolvedTypeInLlvm = GetLlvmRepresentationOf(resolvedType, functionScope);
                 var (initialValue, _) =
                     RecursivelyInitComplexStructure(resolvedType, builder, functionScope, module);
+                // var variable = useGlobal
+                //     ? LLVM.AddGlobal(module, resolvedTypeInLlvm, $"global {variableDeclaration.Name}")
+                //     : LLVM.BuildAlloca(builder, resolvedTypeInLlvm, $"allocating {variableDeclaration.Name}");
+                LLVMValueRef variable;
+                if (useGlobal)
+                {
+                    variable = LLVM.AddGlobal(module, resolvedTypeInLlvm, $"global {variableDeclaration.Name}");
+                    LLVM.SetInitializer(variable, initialValue.Value);
 
-                var variable = useGlobal
-                    ? LLVM.AddGlobal(module, resolvedTypeInLlvm, $"global {variableDeclaration.Name}")
-                    : LLVM.BuildAlloca(builder, resolvedTypeInLlvm, $"allocating {variableDeclaration.Name}");
+                }
+                else
+                    variable = LLVM.BuildAlloca(builder, resolvedTypeInLlvm, $"allocating {variableDeclaration.Name}");
 
                 if (initialValue != null)
                 {
@@ -495,9 +509,18 @@ public static class GenerateBitcode
                     .InferredType!;
                 var (llvmExpression, _) = Visit(someExpression, functionScope, builder, module);
                 var resolvedTypeInLlvm = GetLlvmRepresentationOf(resolvedType, functionScope);
-                var variable = useGlobal
-                    ? LLVM.AddGlobal(module, resolvedTypeInLlvm, $"global {variableDeclaration.Name}")
-                    : LLVM.BuildAlloca(builder, resolvedTypeInLlvm, $"allocating {variableDeclaration.Name}");
+                // var variable = useGlobal
+                //     ? LLVM.AddGlobal(module, resolvedTypeInLlvm, $"global {variableDeclaration.Name}")
+                //     : LLVM.BuildAlloca(builder, resolvedTypeInLlvm, $"allocating {variableDeclaration.Name}");
+                LLVMValueRef variable;
+                if (useGlobal)
+                {
+                    variable = LLVM.AddGlobal(module, resolvedTypeInLlvm, $"global {variableDeclaration.Name}");
+                    LLVM.SetInitializer(variable, llvmExpression);
+
+                }
+                else
+                    variable = LLVM.BuildAlloca(builder, resolvedTypeInLlvm, $"allocating {variableDeclaration.Name}");
                 // TODO: conversion
 
                 LLVM.BuildStore(builder, llvmExpression, variable);
