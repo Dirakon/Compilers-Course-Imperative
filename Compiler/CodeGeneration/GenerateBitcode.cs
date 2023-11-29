@@ -542,26 +542,38 @@ public static class GenerateBitcode
         var preheaderBB = LLVM.GetInsertBlock(builder);
         var (startRange, _) = Visit(forLoop.Range.Start, currentScope, builder, module);
         var (endRange, _) = Visit(forLoop.Range.End, currentScope, builder, module);
+        if (forLoop.Range.IsReversed)
+        {
+            (startRange, endRange) = (endRange, startRange);
+        }
         var forHeadBlock = LLVM.AppendBasicBlock(currentFunction, "for.header");
         var exitBlock = LLVM.AppendBasicBlock(currentFunction, "for.end");
         LLVM.BuildBr(builder, forHeadBlock);
         LLVM.PositionBuilderAtEnd(builder, forHeadBlock);
         var variable = LLVM.BuildPhi(builder, LLVM.Int32Type(), forLoop.IteratorName);
         LLVM.AddIncoming(variable, new []{startRange}, new []{preheaderBB}, 1);
-        var cond = LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLE, variable, endRange, "cond");
+        var cond = forLoop.Range.IsReversed
+            ? LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSGE, variable, endRange, "cond")
+            : LLVM.BuildICmp(builder, LLVMIntPredicate.LLVMIntSLE, variable, endRange, "cond");
+            
         var latch = LLVM.AppendBasicBlock(currentFunction, "for.latch");
         var forBodyBlock = LLVM.AppendBasicBlock(currentFunction, "for.body");
         var inc = LLVM.ConstInt(LLVMTypeRef.Int32Type(), 1, false);
         
         LLVM.BuildCondBr(builder, cond, forBodyBlock, exitBlock);
         LLVM.PositionBuilderAtEnd(builder, latch);
-        LLVMValueRef nextVar = LLVM.BuildAdd(builder, variable, inc, "next");
+        LLVMValueRef nextVar = forLoop.Range.IsReversed
+            ? LLVM.BuildSub(builder, variable, inc, "next")
+            : LLVM.BuildAdd(builder, variable, inc, "next");
         LLVM.AddIncoming(variable, new []{nextVar}, new []{latch}, 1);
         LLVM.BuildBr(builder, forHeadBlock);
-        
-        
         LLVM.PositionBuilderAtEnd(builder, forBodyBlock);
-        (var isWhileBodyTerminated, _) = VisitBody(currentScope, forLoop.Body, builder, module, currentFunction);
+        var inBodyIter = LLVM.BuildAlloca(builder, LLVMTypeRef.Int32Type(), ""); // добавялем итератор в бади
+        LLVM.BuildStore(builder, variable, inBodyIter);
+        currentScope = currentScope.AddOrOverwrite(
+            new DeclaredVariable(forLoop.IteratorName, new ResolvedIntType(), inBodyIter)
+        );
+        var (isWhileBodyTerminated, _) = VisitBody(currentScope, forLoop.Body, builder, module, currentFunction);
         if (!isWhileBodyTerminated)
         {
             LLVM.BuildBr(builder, latch);
