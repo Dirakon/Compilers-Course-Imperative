@@ -1,0 +1,12 @@
+type nestedType is record { var arr: array [10] integer;} end;
+type someRecord is record { var a: integer; var child: nestedType;} end;
+
+routine EntryPoint(): integer is
+ var recordInstance : someRecord;
+
+ var recordCopy : someRecord is recordInstance;
+ recordInstance.child.arr[1] := 1338;
+ 
+
+ return recordCopy.child.arr[1];
+end;

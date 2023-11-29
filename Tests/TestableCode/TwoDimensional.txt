@@ -1,0 +1,10 @@
+routine EntryPoint(): integer is
+    var arr1d: array [7] integer;
+    arr1d[5] := 80085;
+    
+    var arr2d: array [7] array [7] integer;
+    arr2d[0][1] := 10;
+    arr2d[1] := arr1d;
+    
+    return arr2d[0][1] + arr2d[1][5];
+end;

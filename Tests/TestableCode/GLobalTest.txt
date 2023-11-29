@@ -1,0 +1,5 @@
+var global is 10;
+
+routine EntryPoint(): integer is
+    return global;
+end;
