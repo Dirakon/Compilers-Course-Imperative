@@ -19,13 +19,12 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
             {
                 parser.Parse();
                 var program = parser.RootNode
-                // TODO: uncomment
-                // with
-                // {
-                //     Declarations =
-                //     parser.RootNode.Declarations.WithNodesAdded(DummyNodeList.From(builtInDeclarations))
-                // }
-                ;
+                        with
+                        {
+                            Declarations =
+                            parser.RootNode.Declarations.WithNodesAdded(DummyNodeList.From(builtInDeclarations))
+                        }
+                    ;
                 var (globalScope, typeCheckingErrors) = program.TypeCheckAndGetGlobalScope();
                 if (typeCheckingErrors is not OperationFailure(var someErrors))
                 {
@@ -33,14 +32,16 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                     AstVisualizer.VisualizeAst(program, o.BeforeAstOutputFile);
                     program = new Compiler.Program(
                         program.Declarations
-                            //.WithNodesTransformed(AstOptimization.ExpressionSimplifier)
-                            );
-                
+                        // TODO: uncomment
+                        //.WithNodesTransformed(AstOptimization.ExpressionSimplifier)
+                    );
+
                     if (globalScope.DeclaredEntities.GetValueOrDefault("EntryPoint") is DeclaredRoutine declaredRoutine)
                     {
                         GenerateBitcode.StartExecution(o.BitCodeFile, declaredRoutine.ReturnType, globalScope, program);
                     }
                     else Console.WriteLine("Entry point is not detected");
+
                     AstVisualizer.VisualizeAst(program, o.AfterAstOutputFile);
                 }
                 else
@@ -59,9 +60,6 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
                         Console.WriteLine();
                     }
                 }
-                
-                
-               
             }
             catch (SyntaxErrorException er)
             {
@@ -117,7 +115,7 @@ namespace Compiler
 
         [Option('a', "ast-after", Required = false, HelpText = "Path to file where to output AST.")]
         public string AfterAstOutputFile { get; init; } = "Logs/after-ast.dot";
-        
+
         [Option('c', "bit-code", Required = false, HelpText = "Path to file where to output bitcode.")]
         public string BitCodeFile { get; init; } = "Logs/final.bc";
     }

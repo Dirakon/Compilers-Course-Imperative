@@ -220,4 +220,6 @@ public record ResolvedRecordType(IReadOnlyDictionary<string, IResolvedType> Vari
                 .Select(keyValue => $"{keyValue.Key} : {keyValue.Value.GetTypeName()}"));
         return $"record of {{{variablesString}}}";
     }
+
+    public string[] SortedVariableNames { get; } = Variables.Keys.OrderBy(s => s).ToArray();
 }

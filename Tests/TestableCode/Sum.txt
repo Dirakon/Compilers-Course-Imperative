@@ -1,15 +1,8 @@
-type myInt is integer;
-
-routine EntryPoint(): myInt is
-        while OtherFunc() < 0 loop 
-            return 96;
-        end;
-        type localIntCantAssignThoNeedVariableDeclaration is myInt;
-        return OtherFunc();
+routine Sum(x: integer, y: integer): integer is
+    return x + y;
 end;
 
-type myOtherInt is integer;
 
-routine OtherFunc(): myOtherInt is
-    return 1;
+routine EntryPoint(): boolean is
+    return Sum(69, -1) = 68; 
 end;
