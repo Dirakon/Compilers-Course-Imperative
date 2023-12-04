@@ -65,9 +65,9 @@ public static class GenerateBitcode
         };
     }
 
-    private static LLVMValueRef CreateFormatString(LLVMBuilderRef builder, ResolvedDeclaredRoutineReturnType returnType)
+    private static LLVMValueRef CreateFormatString(LLVMBuilderRef builder, IResolvedType type)
     {
-        return returnType.ReturnType switch
+        return type switch
         {
             ResolvedIntType => LLVM.BuildGlobalStringPtr(builder, "%d\n", "str"),
             ResolvedRealType => LLVM.BuildGlobalStringPtr(builder, "%f\n", "str"),
@@ -492,6 +492,17 @@ public static class GenerateBitcode
         }
     }
 
+    private static LLVMValueRef GetDefaultForType(IResolvedType type, Scope scope)
+        => type switch
+        {
+            ResolvedArrayType resolvedArrayType => LLVM.ConstNull(GetLlvmRepresentationOf(resolvedArrayType, scope)),
+            ResolvedBoolType => LLVM.ConstInt(LLVMTypeRef.Int1Type(), 0, false),
+            ResolvedIntType => LLVM.ConstInt(LLVMTypeRef.Int32Type(), 0, false),
+            ResolvedRealType => LLVM.ConstReal(LLVMTypeRef.DoubleType(), 0.0),
+            ResolvedRecordType resolvedRecordType => LLVM.ConstNull(GetLlvmRepresentationOf(resolvedRecordType, scope)),
+            _ => throw new ArgumentOutOfRangeException(nameof(type))
+        };
+
     private static (Scope, LLVMBuilderRef) Visit(VariableDeclaration variableDeclaration, Scope functionScope,
         LLVMBuilderRef builder, LLVMModuleRef module, bool useGlobal = false)
     {
@@ -507,19 +518,14 @@ public static class GenerateBitcode
                 LLVMValueRef variable;
                 if (useGlobal)
                 {
-                    
-                    // var thing = LLVM.AddGlobal(module, inferredTypeInLlvm, $"global {variableDeclaration.Name}");
-                    // var initialValue = LLVM.ConstInt(inferredTypeInLlvm, 0,  false);
-                    // variable = useGlobal
-                    //     ? LLVM.AddGlobal(module, inferredTypeInLlvm, $"global {variableDeclaration.Name}")
-                    //     : LLVM.BuildAlloca(builder, inferredTypeInLlvm, $"allocating {variableDeclaration.Name}");
                     variable = LLVM.AddGlobal(module, inferredTypeInLlvm, $"global {variableDeclaration.Name}");
-                    var initialValue = LLVM.ConstInt(inferredTypeInLlvm, 0, false);
+                    var initialValue = GetDefaultForType(inferredType, functionScope);
                     LLVM.SetInitializer(variable, initialValue);
-
                 }
                 else
+                {
                     variable = LLVM.BuildAlloca(builder, inferredTypeInLlvm, $"allocating {variableDeclaration.Name}");
+                }
 
                 LLVM.BuildStore(builder, llvmExpression, variable);
 
@@ -540,15 +546,11 @@ public static class GenerateBitcode
                 var resolvedTypeInLlvm = GetLlvmRepresentationOf(resolvedType, functionScope);
                 var (initialValue, _) =
                     RecursivelyInitComplexStructure(resolvedType, builder, functionScope, module);
-                // var variable = useGlobal
-                //     ? LLVM.AddGlobal(module, resolvedTypeInLlvm, $"global {variableDeclaration.Name}")
-                //     : LLVM.BuildAlloca(builder, resolvedTypeInLlvm, $"allocating {variableDeclaration.Name}");
                 LLVMValueRef variable;
                 if (useGlobal)
                 {
                     variable = LLVM.AddGlobal(module, resolvedTypeInLlvm, $"global {variableDeclaration.Name}");
-                    LLVM.SetInitializer(variable, initialValue.Value);
-
+                    LLVM.SetInitializer(variable, GetDefaultForType(resolvedType, functionScope));
                 }
                 else
                     variable = LLVM.BuildAlloca(builder, resolvedTypeInLlvm, $"allocating {variableDeclaration.Name}");
@@ -578,19 +580,16 @@ public static class GenerateBitcode
                 var expressionType = someExpression.TryInferType(functionScope).InferredType!;
                 var (llvmExpression, _) = Visit(someExpression, functionScope, builder, module);
                 var resolvedTypeInLlvm = GetLlvmRepresentationOf(resolvedType, functionScope);
-                // var variable = useGlobal
-                //     ? LLVM.AddGlobal(module, resolvedTypeInLlvm, $"global {variableDeclaration.Name}")
-                //     : LLVM.BuildAlloca(builder, resolvedTypeInLlvm, $"allocating {variableDeclaration.Name}");
                 LLVMValueRef variable;
                 if (useGlobal)
                 {
                     variable = LLVM.AddGlobal(module, resolvedTypeInLlvm, $"global {variableDeclaration.Name}");
-                    LLVM.SetInitializer(variable, llvmExpression);
-
+                    LLVM.SetInitializer(variable, GetDefaultForType(resolvedType, functionScope));
                 }
                 else
+                {
                     variable = LLVM.BuildAlloca(builder, resolvedTypeInLlvm, $"allocating {variableDeclaration.Name}");
-                // TODO: conversion
+                }
 
                 (var convertedVariable, _) = ConvertVariable(variable, 
                     expressionType, 
@@ -999,7 +998,17 @@ public static class GenerateBitcode
                 {
                     var singleArrayExpression = routineCall.Arguments.First();
                     (var array, _) = Visit(singleArrayExpression, currentScope, builder, module);
-                    return (LLVM.BuildLoad(builder, LLVM.BuildStructGEP(builder, array, 0, "array size"), "array size"), builder);
+                    return (LLVM.BuildLoad(builder, LLVM.BuildStructGEP(builder, array, 0, "array size"), "array size"),
+                        builder);
+                }
+                else if (routineCall.RoutineName == "Print")
+                {
+                    var singlePrimitiveTypeExpression = routineCall.Arguments.First();
+                    (var primitiveValue, _) = Visit(singlePrimitiveTypeExpression, currentScope, builder, module);
+                    var printfFunc = LLVM.GetNamedFunction(module, "printf");
+                    var formatString = CreateFormatString(builder, singlePrimitiveTypeExpression.TryInferType(currentScope).InferredType!);
+                    LLVM.BuildCall(builder, printfFunc, new LLVMValueRef[] {formatString, primitiveValue}, "");
+                    return (LLVM.ConstInt(LLVMTypeRef.Int32Type(), 0, false), builder);
                 }
                 
                 var functionInLlvm = LLVM.GetNamedFunction(module, routineCall.RoutineName);
@@ -1038,7 +1047,7 @@ public static class GenerateBitcode
         LLVM.BuildCall(builderMain, printfFunc,
             new LLVMValueRef[]
             {
-                CreateFormatString(builderMain, (ResolvedDeclaredRoutineReturnType)entryPointRetTp),
+                CreateFormatString(builderMain, (entryPointRetTp as ResolvedDeclaredRoutineReturnType)!.ReturnType!),
                 LLVM.BuildCall(builderMain, entryPoint, Array.Empty<LLVMValueRef>(), "")
             }, "");
 
