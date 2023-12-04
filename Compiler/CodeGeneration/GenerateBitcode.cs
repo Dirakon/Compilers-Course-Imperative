@@ -124,10 +124,8 @@ public static class GenerateBitcode
             0);
     }
 
-    public static LLVMModuleRef LlvmizeAst(this Scope globalScope, Program initialAst)
+    public static LLVMModuleRef LlvmizeAst(this Scope globalScope, Program initialAst, LLVMModuleRef module)
     {
-        var module = LLVM.ModuleCreateWithName("Hello World");
-
         var builder = LLVM.CreateBuilder();
 
         foreach (var declaredType in
@@ -591,14 +589,14 @@ public static class GenerateBitcode
                     variable = LLVM.BuildAlloca(builder, resolvedTypeInLlvm, $"allocating {variableDeclaration.Name}");
                 }
 
-                (var convertedVariable, _) = ConvertVariable(variable, 
+                (var convertedExpression, _) = ConvertVariable(llvmExpression, 
                     expressionType, 
                     resolvedType,
                     functionScope,
                     builder,
                     module);
 
-                LLVM.BuildStore(builder, llvmExpression, convertedVariable);
+                LLVM.BuildStore(builder, convertedExpression, variable);
 
                 // Not null because we type-checked before
                 var declaredEntity = variableDeclaration.AsDeclaredEntity(functionScope).DeclaredEntity!;
@@ -1001,16 +999,16 @@ public static class GenerateBitcode
                     return (LLVM.BuildLoad(builder, LLVM.BuildStructGEP(builder, array, 0, "array size"), "array size"),
                         builder);
                 }
-                else if (routineCall.RoutineName == "Print")
+
+                if (routineCall.RoutineName == "Print")
                 {
                     var singlePrimitiveTypeExpression = routineCall.Arguments.First();
                     (var primitiveValue, _) = Visit(singlePrimitiveTypeExpression, currentScope, builder, module);
                     var printfFunc = LLVM.GetNamedFunction(module, "printf");
                     var formatString = CreateFormatString(builder, singlePrimitiveTypeExpression.TryInferType(currentScope).InferredType!);
-                    LLVM.BuildCall(builder, printfFunc, new LLVMValueRef[] {formatString, primitiveValue}, "");
-                    return (LLVM.ConstInt(LLVMTypeRef.Int32Type(), 0, false), builder);
+                    return  (LLVM.BuildCall(builder, printfFunc, new LLVMValueRef[] {formatString, primitiveValue}, ""), builder);
                 }
-                
+
                 var functionInLlvm = LLVM.GetNamedFunction(module, routineCall.RoutineName);
                 var functionInAst = currentScope.DeclaredEntities[routineCall.RoutineName].Cast<DeclaredRoutine>();
                 List<LLVMValueRef> argumentsInLlvm = new List<LLVMValueRef>();
@@ -1037,11 +1035,19 @@ public static class GenerateBitcode
     public static void StartExecution(string outputFilePath, IDeclaredRoutineReturnType entryPointRetTp,
         Scope globalScope, Program initialAst)
     {
-        var module = LlvmizeAst(globalScope, initialAst);
-        // var context = LLVM.ContextCreate();
+        var module = LLVM.ModuleCreateWithName("Imperative program");
         var printfFunc = DeclarePrintf(module);
+        LlvmizeAst(globalScope, initialAst, module);
+        // var context = LLVM.ContextCreate();
 
         var (_, builderMain) = CreateMain(module);
+        var initGlobals = LLVM.GetNamedFunction(module, "________INIT________");
+
+        LLVM.BuildCall(builderMain, initGlobals,
+            new LLVMValueRef[]
+            {
+            }, "");
+        
         var entryPoint = LLVM.GetNamedFunction(module, "EntryPoint");
 
         LLVM.BuildCall(builderMain, printfFunc,
