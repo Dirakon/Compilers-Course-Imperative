@@ -256,13 +256,8 @@ public static class TypeCheckingAstExtensions
             return new TypeCheckerError("Print has to have exactly one argument", new[] { routineCall.LexLocation })
                 .ToFailure();
         }
-
-        return singleExpression.TryInferType(scope)
-            .AddErrorOnSuccess(type => type is ResolvedArrayType or ResolvedRecordType
-                ? new TypeCheckerError("Print cannot output non-primitive types", new[] { routineCall.LexLocation })
-                    .ToFailure()
-                : null)
-            .PossibleError;
+        
+        return null;
     }
 
     public static OperationFailure? GetLengthOfSpecificErrors(RoutineCall routineCall, Scope scope)

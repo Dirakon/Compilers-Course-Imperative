@@ -72,7 +72,7 @@ public static class GenerateBitcode
             ResolvedIntType => LLVM.BuildGlobalStringPtr(builder, "%d\n", "str"),
             ResolvedRealType => LLVM.BuildGlobalStringPtr(builder, "%f\n", "str"),
             ResolvedBoolType => LLVM.BuildGlobalStringPtr(builder, "%hhu\n", "str"),
-            _ => (default) // TODO: error or specific message when unformattable type
+            _ => LLVM.BuildGlobalStringPtr(builder, "%s\n", "str"),
         };
     }
 
@@ -1003,9 +1003,22 @@ public static class GenerateBitcode
                 if (routineCall.RoutineName == "Print")
                 {
                     var singlePrimitiveTypeExpression = routineCall.Arguments.First();
-                    (var primitiveValue, _) = Visit(singlePrimitiveTypeExpression, currentScope, builder, module);
+                    var resolvedType = singlePrimitiveTypeExpression.TryInferType(currentScope).InferredType!;
+                    LLVMValueRef primitiveValue;
+                    switch (resolvedType)
+                    {
+                        case ResolvedArrayType:
+                            primitiveValue = LLVM.BuildGlobalStringPtr(builder, "<array>", "");
+                            break;
+                        case ResolvedRecordType:
+                            primitiveValue = LLVM.BuildGlobalStringPtr(builder, "<record>", "");
+                            break;
+                        default:
+                            (primitiveValue, _) = Visit(singlePrimitiveTypeExpression, currentScope, builder, module);
+                            break;
+                    }
                     var printfFunc = LLVM.GetNamedFunction(module, "printf");
-                    var formatString = CreateFormatString(builder, singlePrimitiveTypeExpression.TryInferType(currentScope).InferredType!);
+                    var formatString = CreateFormatString(builder, resolvedType);
                     return  (LLVM.BuildCall(builder, printfFunc, new LLVMValueRef[] {formatString, primitiveValue}, ""), builder);
                 }
 
