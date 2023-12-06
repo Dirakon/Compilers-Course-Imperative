@@ -1,0 +1,17 @@
+var glob is 2;
+
+
+routine EntryPoint(): integer is
+    var someRecord : record { 
+                                 var field : integer;
+                             } end;
+        
+    someRecord.field := 2;
+    var arr: array [10] integer;
+    for i in 0..9 loop
+        arr[i] := i + 1;
+    end;
+    Print(someRecord);
+    return arr[9];
+end;
+

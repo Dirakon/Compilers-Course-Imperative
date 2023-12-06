@@ -257,12 +257,7 @@ public static class TypeCheckingAstExtensions
                 .ToFailure();
         }
 
-        return singleExpression.TryInferType(scope)
-            .AddErrorOnSuccess(type => type is ResolvedArrayType or ResolvedRecordType
-                ? new TypeCheckerError("Print cannot output non-primitive types", new[] { routineCall.LexLocation })
-                    .ToFailure()
-                : null)
-            .PossibleError;
+        return singleExpression.TryInferType(scope).PossibleError;
     }
 
     public static OperationFailure? GetLengthOfSpecificErrors(RoutineCall routineCall, Scope scope)

@@ -1,4 +1,8 @@
 routine SumInvTypes(x: real, y: integer): real is
-    var ans: integer is x + ToReal(y);
+    var ans: real is x + ToReal(y);
     return ans;
+end;
+
+routine EntryPoint(): real is
+    return SumInvTypes(50.0, 2);
 end;
