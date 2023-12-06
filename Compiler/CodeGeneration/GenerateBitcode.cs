@@ -1073,6 +1073,7 @@ public static class GenerateBitcode
                     LLVM.BuildCall(builderMain, entryPoint, Array.Empty<LLVMValueRef>(), "")
                 }, "");
         }
+        else LLVM.BuildCall(builderMain, entryPoint, Array.Empty<LLVMValueRef>(), "");
         
 
         var constInt0 = LLVM.ConstInt(LLVM.Int32Type(), 0, true);

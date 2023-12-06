@@ -1,18 +1,18 @@
-routine EntryPoint(): boolean is 
-    var arr1: array [10] integer;
-    var arr2: array [10] integer;
-    
-    for i in 0..9 loop
-        arr1[i] := i;
-    end;
-    
+routine EntryPoint() is 
+    var arr: array [10] integer;
     for i in reverse 0..9 loop
-        arr2[i] := i;
+        arr[i] := 9-i;
     end;
-    
-    BubbleSort(arr2);
-    
-    return CheckEqual(arr1, arr2);
+    PrintArray(arr);    
+    BubbleSort(arr);
+    Print(arr);
+    PrintArray(arr);    
+end;
+
+routine PrintArray( arr: array [] integer ) is
+     for i in 0..LengthOf(arr)-1 loop
+        Print(arr[i]);
+     end;
 end;
 
 routine BubbleSort( beforeArray: array [] integer ) is
@@ -36,15 +36,6 @@ routine BubbleSort( beforeArray: array [] integer ) is
     end;
 end;
 
-routine CheckEqual(beforeArray: array [] integer, afterArray: array [] integer): boolean is
-    for i in 0..9 loop
-        if beforeArray[i] /= afterArray[i] then
-            return false;
-        end;   
-    end;
-    return true;
-end;
-     
     
     
 

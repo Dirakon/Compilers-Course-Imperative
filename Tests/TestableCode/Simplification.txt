@@ -2,13 +2,12 @@ var nol is 0;
 var simplifiedVariable is false xor false xor (true and false);
 
 routine EntryPoint(): boolean is
-    return true;
+    return ToBool(4);
 end;
 
 
 routine WhileLoop(n: integer): integer is
-    var arr: array[1+2] integer;
-    var temp: integer;
+    var temp is (2-312)*123;
     if 1 < 0 then
         return -1;
     end;
