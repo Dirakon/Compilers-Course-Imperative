@@ -219,9 +219,11 @@ public static class TypeCheckingAstExtensions
                     _ => throw new ArgumentOutOfRangeException()
                 }),
                 RoutineCall routineCall => (currentScope,
-                    routineCall.RoutineName == "LengthOf"
-                        ? GetLengthOfSpecificErrors(routineCall, scope)
-                        : currentScope.TryGetRoutine(routineCall.RoutineName, routineCall.LexLocation) switch
+                    routineCall.RoutineName switch
+                    {
+                        "LengthOf" => GetLengthOfSpecificErrors(routineCall, scope),
+                        "Print" => GetPrintSpecificErrors(routineCall, scope),
+                        _ => currentScope.TryGetRoutine(routineCall.RoutineName, routineCall.LexLocation) switch
                         {
                             ({ } declaredRoutine, var errors) =>
                                 errors
@@ -237,13 +239,30 @@ public static class TypeCheckingAstExtensions
                                             routineCall.Arguments
                                                 .Select(arg => arg.TryInferType(currentScope).PossibleError)
                                                 .NotNull()))
-                        }),
+                        }
+                    }),
                 _ => throw new ArgumentOutOfRangeException(nameof(bodyElement))
             };
             possibleFailure = possibleFailure.TryAdd(newPossibleFailure);
         }
 
         return possibleFailure;
+    }
+
+    public static OperationFailure? GetPrintSpecificErrors(RoutineCall routineCall, Scope scope)
+    {
+        if (routineCall.Arguments.ToList() is not [var singleExpression])
+        {
+            return new TypeCheckerError("Print has to have exactly one argument", new[] { routineCall.LexLocation })
+                .ToFailure();
+        }
+
+        return singleExpression.TryInferType(scope)
+            .AddErrorOnSuccess(type => type is ResolvedArrayType or ResolvedRecordType
+                ? new TypeCheckerError("Print cannot output non-primitive types", new[] { routineCall.LexLocation })
+                    .ToFailure()
+                : null)
+            .PossibleError;
     }
 
     public static OperationFailure? GetLengthOfSpecificErrors(RoutineCall routineCall, Scope scope)

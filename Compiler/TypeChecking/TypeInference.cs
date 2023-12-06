@@ -164,10 +164,13 @@ public static class TypeInference
             RealPrimary => new TypeInferenceResult(new ResolvedRealType(), null),
             ModifiablePrimary modifiablePrimary => modifiablePrimary.TryInferModifiablePrimaryType(scope),
             RoutineCall routineCall =>
-                routineCall.RoutineName == "LengthOf"
-                    ? new TypeInferenceResult(new ResolvedIntType(),
-                        TypeCheckingAstExtensions.GetLengthOfSpecificErrors(routineCall, scope))
-                    : scope.TryGetRoutine(routineCall.RoutineName, routineCall.LexLocation) switch
+                routineCall.RoutineName switch
+                {
+                    "LengthOf" => new TypeInferenceResult(new ResolvedIntType(),
+                        TypeCheckingAstExtensions.GetLengthOfSpecificErrors(routineCall, scope)),
+                    "Print" => new TypeInferenceResult(new ResolvedIntType(),
+                        TypeCheckingAstExtensions.GetPrintSpecificErrors(routineCall, scope)),
+                    _ => scope.TryGetRoutine(routineCall.RoutineName, routineCall.LexLocation) switch
                     {
                         ({ ReturnType: ResolvedDeclaredRoutineReturnType({ } someType) } declaredRoutine, var errors) =>
                             new TypeInferenceResult(someType, null)
@@ -194,7 +197,8 @@ public static class TypeInference
                                     routineCall.Arguments
                                         .Select(arg => arg.TryInferType(scope).PossibleError)
                                         .NotNull()))
-                    },
+                    }
+                },
             _ => throw new ArgumentOutOfRangeException(nameof(factor))
         };
 

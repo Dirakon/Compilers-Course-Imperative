@@ -1,0 +1,13 @@
+var global1: array [7] integer;
+var global2: array [7] integer is global1;
+var globalConst: integer is 69;
+
+routine EntryPoint(): integer is
+    for i in 0..LengthOf(global1)-1 loop
+        global1[i] := i;
+    end;
+    for i in 0..LengthOf(global1)-1 loop
+        Print(global2[i]);
+    end;
+    return globalConst;
+end;
