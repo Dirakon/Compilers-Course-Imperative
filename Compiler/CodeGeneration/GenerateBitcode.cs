@@ -1063,12 +1063,17 @@ public static class GenerateBitcode
         
         var entryPoint = LLVM.GetNamedFunction(module, "EntryPoint");
 
-        LLVM.BuildCall(builderMain, printfFunc,
-            new LLVMValueRef[]
-            {
-                CreateFormatString(builderMain, (entryPointRetTp as ResolvedDeclaredRoutineReturnType)!.ReturnType!),
-                LLVM.BuildCall(builderMain, entryPoint, Array.Empty<LLVMValueRef>(), "")
-            }, "");
+        var resolvedRetTp = (entryPointRetTp as ResolvedDeclaredRoutineReturnType)!.ReturnType;
+        if (resolvedRetTp != null)
+        {
+            LLVM.BuildCall(builderMain, printfFunc,
+                new LLVMValueRef[]
+                {
+                    CreateFormatString(builderMain, resolvedRetTp),
+                    LLVM.BuildCall(builderMain, entryPoint, Array.Empty<LLVMValueRef>(), "")
+                }, "");
+        }
+        
 
         var constInt0 = LLVM.ConstInt(LLVM.Int32Type(), 0, true);
         LLVM.BuildRet(builderMain, constInt0);
