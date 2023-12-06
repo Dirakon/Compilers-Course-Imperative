@@ -256,8 +256,8 @@ public static class TypeCheckingAstExtensions
             return new TypeCheckerError("Print has to have exactly one argument", new[] { routineCall.LexLocation })
                 .ToFailure();
         }
-        
-        return null;
+
+        return singleExpression.TryInferType(scope).PossibleError;
     }
 
     public static OperationFailure? GetLengthOfSpecificErrors(RoutineCall routineCall, Scope scope)
