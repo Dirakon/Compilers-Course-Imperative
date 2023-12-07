@@ -1,0 +1,21 @@
+type someRecord is record { var flag: boolean; var arr: array [10] integer;} end;
+
+routine EntryPoint() is 
+    var recordInst : someRecord;
+    recordInst.flag := true;
+    if (recordInst.flag) then 
+        InitArray(recordInst.arr);
+    end;
+    var i is 0;
+    while (i<LengthOf(recordInst.arr)) loop
+        Print(recordInst.arr[i]);
+        i := i + 1;
+    end;
+end; 
+    
+routine InitArray( arr: array [] integer ) is
+    for i in 0..LengthOf(arr)-1 loop
+        arr[i] := (i+2)*2;
+    end;
+end;
+    
