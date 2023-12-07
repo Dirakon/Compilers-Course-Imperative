@@ -200,6 +200,9 @@ public static class AstVisualizer
                     AddBodyToGraph("body", forLoop.Body, graph, forNode);
                     break;
                 }
+                case RoutineCall routineCall:
+                    AddRoutineCallToGraph(routineCall, graph, node);
+                    break;
             }
         }
     }
